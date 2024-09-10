@@ -1,19 +1,10 @@
-# DZ
-## DZ 1
-### DZ 2
+# Домашнее задание по лекции "CAP теорема"
 
-*test*
-**test**
-***test***
+## Задание
 
-1. test-1
-2. test-2
-3. test-3
+Необходимо написать к каким системам по CAP теореме относятся перечисленные БД и почему:
+MongoDB, MSSQL, Cassandra.
 
-- test-1
-- test-2
-- test-3
+## Ответ
 
-[Test link](http://ya.ru)
-
-![Picture](https://img.freepik.com/free-photo/landscape-of-morning-fog-and-mountains-with-hot-air-balloons-at-sunrise_335224-794.jpg)
+MongoDB 
