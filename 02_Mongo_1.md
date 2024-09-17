@@ -27,7 +27,7 @@
     ```
 
 3. Отключаю Transparent Hugepages:
-  * Создаю для сервиса файл /etc/systemd/system/disable-transparent-huge-pages.service с содержимым:
+  * Создаю для сервиса файл /etc/systemd/system/disable-transparent-huge-pages.service со следующим содержимым:
      ```
      [Unit]
      Description=Disable Transparent Hugepages (THP)
@@ -44,8 +44,50 @@
     ```
     systemctl daemon-reload
     ```
-  * Включаю автозапуск и заупускаю сервиса disable-transparent-huge-pages командами:
+  * Включаю автозапуск и заупускаю сервис disable-transparent-huge-pages командами:
     ```
     systemctl enable disable-transparent-huge-pages
     systemctl start disable-transparent-huge-pages
     ```
+
+4. Отключаю SELINUX:
+  * В файле /etc/selinux/config ставлю параметр:
+    ```
+    SELINUX=disabled
+    ```
+  * Перезагружаю сервер, для применения параметра.
+
+5. Для репозитория MongoDB создаю файл /etc/yum.repos.d/mongodb-org-7.0.repo для репозитория MongoDB со следующим содержимым:
+   ```
+   [mongodb-org-7.0]
+   name=MongoDB Repository
+   baseurl=https://repo.mongodb.org/yum/redhat/7/mongodb-org/7.0/x86_64/
+   gpgcheck=1
+   enabled=1
+   gpgkey=https://pgp.mongodb.com/server-7.0.asc
+   ```
+
+6. Устанавливаю MongoDB командой:
+   ```
+   yum install mongodb-org
+   ```
+
+7. Для данных БД создаю директорию /data/mongodb и даю на неё необходимые права командами:
+   ```
+   mkdir -p /data/mongodb
+   chown -R mongod:mongod /data/mongodb
+   ```
+
+8. Меняю параметр расположения данных БД в файле параметров /etc/mongod.conf:
+   ```
+   storage:
+     dbPath: /data/mongodb
+   ```
+
+9. Включаю автозапуск и запускаю сервис MongoDB:
+   ```
+   systemctl enable mongod
+   systemctl start mongod
+   ```
+
+### Заполнение БД данными
