@@ -74,15 +74,15 @@
 
 7. Меняю директорию для данных БД:
   * Создаю директорию /data/mongodb и даю на неё необходимые права командами:
-   ```
-   mkdir -p /data/mongodb
-   chown -R mongod:mongod /data/mongodb
-   ```
+    ```
+    mkdir -p /data/mongodb
+    chown -R mongod:mongod /data/mongodb
+    ```
   * Меняю параметр расположения данных БД в файле параметров /etc/mongod.conf:
-   ```
-   storage:
-     dbPath: /data/mongodb
-   ```
+    ```
+    storage:
+      dbPath: /data/mongodb
+    ```
 
 10. Включаю автозапуск и запускаю сервис MongoDB:
    ```
