@@ -72,19 +72,19 @@
    yum install mongodb-org
    ```
 
-7. Для данных БД создаю директорию /data/mongodb и даю на неё необходимые права командами:
+7. Меняю директорию для данных БД:
+  * Создаю директорию /data/mongodb и даю на неё необходимые права командами:
    ```
    mkdir -p /data/mongodb
    chown -R mongod:mongod /data/mongodb
    ```
-
-8. Меняю параметр расположения данных БД в файле параметров /etc/mongod.conf:
+  * Меняю параметр расположения данных БД в файле параметров /etc/mongod.conf:
    ```
    storage:
      dbPath: /data/mongodb
    ```
 
-9. Включаю автозапуск и запускаю сервис MongoDB:
+10. Включаю автозапуск и запускаю сервис MongoDB:
    ```
    systemctl enable mongod
    systemctl start mongod
