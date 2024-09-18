@@ -281,3 +281,242 @@
      }
    ]
    ```
+
+### Создание индексов и сравнение производительности
+
+1. Получаю статистику выполнения запроса до создания индекса:
+   ```
+   test> db.operations.find( { $and: [ { name: "Сидор Сидоров"}, { date: { $gte: "2024-09-11 14:00:00" } }, { date: { $lt: "2024-09-12 14:00:00" }} ]  } ).explain("executionStats")
+   {
+     explainVersion: '1',
+     queryPlanner: {
+       namespace: 'test.operations',
+       indexFilterSet: false,
+       parsedQuery: {
+         '$and': [
+           { name: { '$eq': 'Сидор Сидоров' } },
+           { date: { '$lt': '2024-09-12 14:00:00' } },
+           { date: { '$gte': '2024-09-11 14:00:00' } }
+         ]
+       },
+       queryHash: '21D08A2C',
+       planCacheKey: '21D08A2C',
+       maxIndexedOrSolutionsReached: false,
+       maxIndexedAndSolutionsReached: false,
+       maxScansToExplodeReached: false,
+       winningPlan: {
+         stage: 'COLLSCAN',
+         filter: {
+           '$and': [
+             { name: { '$eq': 'Сидор Сидоров' } },
+             { date: { '$lt': '2024-09-12 14:00:00' } },
+             { date: { '$gte': '2024-09-11 14:00:00' } }
+           ]
+         },
+         direction: 'forward'
+       },
+       rejectedPlans: []
+     },
+     executionStats: {
+       executionSuccess: true,
+       nReturned: 506,
+       executionTimeMillis: 5,
+       totalKeysExamined: 0,
+       totalDocsExamined: 10000,
+       executionStages: {
+         stage: 'COLLSCAN',
+         filter: {
+           '$and': [
+             { name: { '$eq': 'Сидор Сидоров' } },
+             { date: { '$lt': '2024-09-12 14:00:00' } },
+             { date: { '$gte': '2024-09-11 14:00:00' } }
+           ]
+         },
+         nReturned: 506,
+         executionTimeMillisEstimate: 0,
+         works: 10001,
+         advanced: 506,
+         needTime: 9494,
+         needYield: 0,
+         saveState: 10,
+         restoreState: 10,
+         isEOF: 1,
+         direction: 'forward',
+         docsExamined: 10000
+       }
+     },
+     command: {
+       find: 'operations',
+       filter: {
+         '$and': [
+           { name: 'Сидор Сидоров' },
+           { date: { '$gte': '2024-09-11 14:00:00' } },
+           { date: { '$lt': '2024-09-12 14:00:00' } }
+         ]
+       },
+       '$db': 'test'
+     },
+     serverInfo: {
+       host: 'lab1',
+       port: 27017,
+       version: '7.0.14',
+       gitVersion: 'ce59cfc6a3c5e5c067dca0d30697edd68d4f5188'
+     },
+     serverParameters: {
+       internalQueryFacetBufferSizeBytes: 104857600,
+       internalQueryFacetMaxOutputDocSizeBytes: 104857600,
+       internalLookupStageIntermediateDocumentMaxSizeBytes: 104857600,
+       internalDocumentSourceGroupMaxMemoryBytes: 104857600,
+       internalQueryMaxBlockingSortMemoryUsageBytes: 104857600,
+       internalQueryProhibitBlockingMergeOnMongoS: 0,
+       internalQueryMaxAddToSetBytes: 104857600,
+       internalDocumentSourceSetWindowFieldsMaxMemoryBytes: 104857600,
+       internalQueryFrameworkControl: 'trySbeRestricted'
+     },
+     ok: 1
+   }
+   ```
+
+2. Т.к. в запросе используется условие по всем трём полям, то создаю составной индекс оп всем им:
+   ```
+   test> db.operations.createIndex( { "date": 1 , "name": 1, "operation": 1 } )
+   date_1_name_1_operation_1
+   ```
+
+3. Проверяю, что индекс в коллекции создан:
+   ```
+   test> db.operations.getIndexes()
+   [
+     { v: 2, key: { _id: 1 }, name: '_id_' },
+     {
+       v: 2,
+       key: { date: 1, name: 1, operation: 1 },
+       name: 'date_1_name_1_operation_1'
+     }
+   ]
+   ```
+
+4. Получаю статистику выполнения запроса после создания индекса:
+   ```
+   test> db.operations.find( { $and: [ { name: "Сидор Сидоров"}, { date: { $gte: "2024-09-11 14:00:00" } }, { date: { $lt: "2024-09-12 14:00:00" }} ]  } ).explain("executionStats")
+   {
+     explainVersion: '1',
+     queryPlanner: {
+       namespace: 'test.operations',
+       indexFilterSet: false,
+       parsedQuery: {
+         '$and': [
+           { name: { '$eq': 'Сидор Сидоров' } },
+           { date: { '$lt': '2024-09-12 14:00:00' } },
+           { date: { '$gte': '2024-09-11 14:00:00' } }
+         ]
+       },
+       queryHash: '21D08A2C',
+       planCacheKey: 'F54DE899',
+       maxIndexedOrSolutionsReached: false,
+       maxIndexedAndSolutionsReached: false,
+       maxScansToExplodeReached: false,
+       winningPlan: {
+         stage: 'FETCH',
+         inputStage: {
+           stage: 'IXSCAN',
+           keyPattern: { date: 1, name: 1, operation: 1 },
+           indexName: 'date_1_name_1_operation_1',
+           isMultiKey: false,
+           multiKeyPaths: { date: [], name: [], operation: [] },
+           isUnique: false,
+           isSparse: false,
+           isPartial: false,
+           indexVersion: 2,
+           direction: 'forward',
+           indexBounds: {
+             date: [ '["2024-09-11 14:00:00", "2024-09-12 14:00:00")' ],
+             name: [ '["Сидор Сидоров", "Сидор Сидоров"]' ],
+             operation: [ '[MinKey, MaxKey]' ]
+           }
+         }
+       },
+        rejectedPlans: []
+     },
+     executionStats: {
+       executionSuccess: true,
+       nReturned: 506,
+       executionTimeMillis: 3,
+       totalKeysExamined: 1440,
+       totalDocsExamined: 506,
+       executionStages: {
+         stage: 'FETCH',
+         nReturned: 506,
+         executionTimeMillisEstimate: 0,
+         works: 1440,
+         advanced: 506,
+         needTime: 933,
+         needYield: 0,
+         saveState: 1,
+         restoreState: 1,
+         isEOF: 1,
+         docsExamined: 506,
+         alreadyHasObj: 0,
+         inputStage: {
+           stage: 'IXSCAN',
+           nReturned: 506,
+           executionTimeMillisEstimate: 0,
+           works: 1440,
+           advanced: 506,
+           needTime: 933,
+           needYield: 0,
+           saveState: 1,
+           restoreState: 1,
+           isEOF: 1,
+           keyPattern: { date: 1, name: 1, operation: 1 },
+           indexName: 'date_1_name_1_operation_1',
+           isMultiKey: false,
+           multiKeyPaths: { date: [], name: [], operation: [] },
+           isUnique: false,
+           isSparse: false,
+           isPartial: false,
+           indexVersion: 2,
+           direction: 'forward',
+           indexBounds: {
+             date: [ '["2024-09-11 14:00:00", "2024-09-12 14:00:00")' ],
+             name: [ '["Сидор Сидоров", "Сидор Сидоров"]' ],
+             operation: [ '[MinKey, MaxKey]' ]
+           },
+           keysExamined: 1440,
+           seeks: 934,
+           dupsTested: 0,
+           dupsDropped: 0
+         }
+       }
+     },
+     command: {
+       find: 'operations',
+       filter: {
+         '$and': [
+           { name: 'Сидор Сидоров' },
+           { date: { '$gte': '2024-09-11 14:00:00' } },
+           { date: { '$lt': '2024-09-12 14:00:00' } }
+         ]
+       },
+       '$db': 'test'
+     },
+     serverInfo: {
+       host: 'lab1',
+       port: 27017,
+       version: '7.0.14',
+       gitVersion: 'ce59cfc6a3c5e5c067dca0d30697edd68d4f5188'
+     },
+     serverParameters: {
+       internalQueryFacetBufferSizeBytes: 104857600,
+       internalQueryFacetMaxOutputDocSizeBytes: 104857600,
+       internalLookupStageIntermediateDocumentMaxSizeBytes: 104857600,
+       internalDocumentSourceGroupMaxMemoryBytes: 104857600,
+       internalQueryMaxBlockingSortMemoryUsageBytes: 104857600,
+       internalQueryProhibitBlockingMergeOnMongoS: 0,
+       internalQueryMaxAddToSetBytes: 104857600,
+       internalDocumentSourceSetWindowFieldsMaxMemoryBytes: 104857600,
+       internalQueryFrameworkControl: 'trySbeRestricted'
+     },
+     ok: 1
+   }
+   ```
