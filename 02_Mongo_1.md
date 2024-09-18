@@ -124,3 +124,160 @@
    ```
 
 ### Работа с данными в БД
+
+1. Проверяю количество документов в загруженной коллекции:
+   ```
+   test> db.operations.countDocuments()
+   10000
+   ```
+   
+2. Запрашиваю количество документов по операциям Ивана Иванова:
+   ```
+   test> db.operations.countDocuments({name: "Иван Иванов"})
+   3260
+   ```
+
+3. Запрашиваю данные по Петру Петрову, отсортированные по возрастанию даты и ограниченные выводом  пяти документов:
+   ```
+   test> db.operations.find({name: "Пётр Петров"}).limit(5).sort({date: 1})
+   [
+     {
+       _id: ObjectId('66eaa048c8154ce245bd6b0b'),
+       date: '2024-09-11 13:47:00',
+       name: 'Пётр Петров',
+       operation: 5848
+     },
+     {
+       _id: ObjectId('66eaa048c8154ce245bd6b07'),
+       date: '2024-09-11 13:50:00',
+       name: 'Пётр Петров',
+       operation: 9629
+     },
+     {
+       _id: ObjectId('66eaa048c8154ce245bd6b01'),
+       date: '2024-09-11 13:56:00',
+       name: 'Пётр Петров',
+       operation: -1755
+     },
+     {
+       _id: ObjectId('66eaa048c8154ce245bd6b00'),
+       date: '2024-09-11 13:57:00',
+       name: 'Пётр Петров',
+       operation: 5889
+     },
+     {
+       _id: ObjectId('66eaa048c8154ce245bd6afd'),
+       date: '2024-09-11 14:01:00',
+       name: 'Пётр Петров',
+       operation: 4561
+     }
+   ]
+   ```
+
+4. Запрашиваю минимальные и максимальные значения дат операций по именам/фамилиям:
+   ```
+   test> db.operations.aggregate([{ $group: { _id: "$name", minDate: {$min: "$date"},  maxDate: {$max: "$date"}}}])
+   [
+     {
+       _id: 'Пётр Петров',
+       minDate: '2024-09-11 13:47:00',
+       maxDate: '2024-09-18 12:20:00'
+     },
+     {
+       _id: 'Иван Иванов',
+       minDate: '2024-09-11 13:48:00',
+       maxDate: '2024-09-18 12:16:00'
+     },
+     {
+       _id: 'Сидор Сидоров',
+       minDate: '2024-09-11 13:49:00',
+       maxDate: '2024-09-18 12:19:00'
+     }
+   ]
+   ```
+
+5. Запрашиваю ограниченные по времени данные приходов по Сидору Сидорову:
+   ```
+   test> db.operations.find( { $and: [ { name: "Сидор Сидоров"}, { date: { $gte: "2024-09-11 14:00:00" } }, { date: { $lt: "2024-09-11 14:30:00" }}, { operation: { $gt: 0 } } ]  } )
+   [
+     {
+       _id: ObjectId('66eaa048c8154ce245bd6ae8'),
+       date: '2024-09-11 14:21:00',
+       name: 'Сидор Сидоров',
+       operation: 1199
+     },
+     {
+       _id: ObjectId('66eaa048c8154ce245bd6aed'),
+       date: '2024-09-11 14:16:00',
+       name: 'Сидор Сидоров',
+       operation: 9696
+     },
+     {
+       _id: ObjectId('66eaa048c8154ce245bd6aee'),
+       date: '2024-09-11 14:15:00',
+       name: 'Сидор Сидоров',
+       operation: 2997
+     },
+     {
+       _id: ObjectId('66eaa048c8154ce245bd6af5'),
+       date: '2024-09-11 14:08:00',
+       name: 'Сидор Сидоров',
+       operation: 7634
+     },
+     {
+       _id: ObjectId('66eaa048c8154ce245bd6af7'),
+       date: '2024-09-11 14:06:00',
+       name: 'Сидор Сидоров',
+       operation: 7896
+     }
+   ]
+   ```
+
+6. Уменшаю на 1000 приходы по Сидору Сидорову в запрошенном ранее периоде времени:
+   ```
+   test> db.operations.updateMany( { $and: [ { name: "Сидор Сидоров"}, { date: { $gte: "2024-09-11 14:00:00" } }, { date: { $lt: "2024-09-11 14:30:000" }}, { operation: { $gt: 0 } } ]  }, { $inc: { operation: -1000 } } )
+   {
+     acknowledged: true,
+     insertedId: null,
+     matchedCount: 5,
+     modifiedCount: 5,
+     upsertedCount: 0
+   }
+   ```
+
+7. Проверяю результат предыдущей команды:
+   ```
+   test> db.operations.find( { $and: [ { name: "Сидор Сидоров"}, { date: { $gte: "2024-09-11 14:00:00" } }, { date: { $lt: "2024-09-11 14:30:00" }}, { operation: { $gt: 0 } } ]  } )
+   [
+     {
+       _id: ObjectId('66eaa048c8154ce245bd6ae8'),
+       date: '2024-09-11 14:21:00',
+       name: 'Сидор Сидоров',
+       operation: 199
+     },
+     {
+       _id: ObjectId('66eaa048c8154ce245bd6aed'),
+       date: '2024-09-11 14:16:00',
+       name: 'Сидор Сидоров',
+       operation: 8696
+     },
+     {
+       _id: ObjectId('66eaa048c8154ce245bd6aee'),
+       date: '2024-09-11 14:15:00',
+       name: 'Сидор Сидоров',
+       operation: 1997
+     },
+     {
+       _id: ObjectId('66eaa048c8154ce245bd6af5'),
+       date: '2024-09-11 14:08:00',
+       name: 'Сидор Сидоров',
+       operation: 6634
+     },
+     {
+       _id: ObjectId('66eaa048c8154ce245bd6af7'),
+       date: '2024-09-11 14:06:00',
+       name: 'Сидор Сидоров',
+       operation: 6896
+     }
+   ]
+   ```
