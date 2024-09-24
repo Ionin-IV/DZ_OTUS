@@ -81,7 +81,7 @@ rs.initiate(
 
 5. Запрашиваю конфигурацию созданной replica set:
 ```
-cfg_replica [direct: primary] config> **rs.conf()**
+cfg_replica [direct: primary] config> rs.conf()
 {
   _id: 'cfg_replica',
   version: 1,
@@ -140,7 +140,7 @@ cfg_replica [direct: primary] config> **rs.conf()**
 
 6. Запрашиваю статус replica set:
 ```
-cfg_replica [direct: primary] config> **rs.status()**
+cfg_replica [direct: primary] config> rs.status()
 {
   set: 'cfg_replica',
   date: ISODate('2024-09-24T13:42:56.188Z'),
