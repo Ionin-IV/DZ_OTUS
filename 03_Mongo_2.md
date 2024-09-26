@@ -23,16 +23,14 @@
   * сервер lab7
   * сервер lab8
   * сервер lab9
-- 3-я replica set (мастер - реплика - арбитр):
+- 3-я replica set (мастер - реплика - реплика):
   * сервер lab10
   * сервер lab11
   * сервер lab12
 - 1 сервер роутер mongos для работы с кластером:
   * сервер lab13
 
-Примечание:
-- во втором шарде сделаю сервера с прописанным приоритетом роли мастера
-- в третьем шарде искользую арбитр вместо одной реплики, для того чтобы показать разницу в отработке отказа на разных конфигурациях
+Примечание: во втором шарде сделаю сервера с прописанным приоритетом роли мастера.
 
 ### Установка ПО MongoDB
 
@@ -138,125 +136,452 @@ cfg_replica [direct: primary] config> rs.conf()
 }
 ```
 
-6. Запрашиваю статус replica set:
+### Создание 1-й replica set
+
+1. На каждом сервере в файле /etc/mongod.conf меняю/добавляю следующие параметры:
 ```
-cfg_replica [direct: primary] config> rs.status()
+net:
+  port: 27017
+  bindIp: 0.0.0.0
+
+replication:
+   replSetName: shard01
+
+sharding:
+   clusterRole: shardsvr
+```
+
+2. На каждом сервере конфигурации запускаю сервис mongod:
+```
+systemctl start mongod
+```
+
+3. На одном из серверов захожу в консоль:
+```
+mongosh
+```
+
+4. Запускаю команду создания replica set конфигурации:
+```
+test> rs.initiate(
+...   {
+...     "_id": "shard01",
+...     members: [
+...       { "_id": 0, "host": "lab4:27017" },
+...       { "_id": 1, "host": "lab5:27017" },
+...       { "_id": 2, "host": "lab6:27017" }
+...     ]
+...   }
+... )
+{ ok: 1 }
+```
+
+5. Запрашиваю конфигурацию созданной replica set:
+```
+shard01 [direct: primary] test> rs.conf()
 {
-  set: 'cfg_replica',
-  date: ISODate('2024-09-24T13:42:56.188Z'),
-  myState: 1,
-  term: Long('1'),
-  syncSourceHost: '',
-  syncSourceId: -1,
-  configsvr: true,
-  heartbeatIntervalMillis: Long('2000'),
-  majorityVoteCount: 2,
-  writeMajorityCount: 2,
-  votingMembersCount: 3,
-  writableVotingMembersCount: 3,
-  optimes: {
-    lastCommittedOpTime: { ts: Timestamp({ t: 1727185375, i: 1 }), t: Long('1') },
-    lastCommittedWallTime: ISODate('2024-09-24T13:42:55.363Z'),
-    readConcernMajorityOpTime: { ts: Timestamp({ t: 1727185375, i: 1 }), t: Long('1') },
-    appliedOpTime: { ts: Timestamp({ t: 1727185375, i: 1 }), t: Long('1') },
-    durableOpTime: { ts: Timestamp({ t: 1727185375, i: 1 }), t: Long('1') },
-    lastAppliedWallTime: ISODate('2024-09-24T13:42:55.363Z'),
-    lastDurableWallTime: ISODate('2024-09-24T13:42:55.363Z')
-  },
-  lastStableRecoveryTimestamp: Timestamp({ t: 1727185358, i: 1 }),
-  electionCandidateMetrics: {
-    lastElectionReason: 'electionTimeout',
-    lastElectionDate: ISODate('2024-09-24T13:41:48.846Z'),
-    electionTerm: Long('1'),
-    lastCommittedOpTimeAtElection: { ts: Timestamp({ t: 1727185298, i: 1 }), t: Long('-1') },
-    lastSeenOpTimeAtElection: { ts: Timestamp({ t: 1727185298, i: 1 }), t: Long('-1') },
-    numVotesNeeded: 2,
-    priorityAtElection: 1,
-    electionTimeoutMillis: Long('10000'),
-    numCatchUpOps: Long('0'),
-    newTermStartDate: ISODate('2024-09-24T13:41:48.913Z'),
-    wMajorityWriteAvailabilityDate: ISODate('2024-09-24T13:41:49.433Z')
-  },
+  _id: 'shard01',
+  version: 1,
+  term: 1,
   members: [
     {
       _id: 0,
-      name: 'lab1:27019',
-      health: 1,
-      state: 1,
-      stateStr: 'PRIMARY',
-      uptime: 245,
-      optime: { ts: Timestamp({ t: 1727185375, i: 1 }), t: Long('1') },
-      optimeDate: ISODate('2024-09-24T13:42:55.000Z'),
-      lastAppliedWallTime: ISODate('2024-09-24T13:42:55.363Z'),
-      lastDurableWallTime: ISODate('2024-09-24T13:42:55.363Z'),
-      syncSourceHost: '',
-      syncSourceId: -1,
-      infoMessage: 'Could not find member to sync from',
-      electionTime: Timestamp({ t: 1727185308, i: 1 }),
-      electionDate: ISODate('2024-09-24T13:41:48.000Z'),
-      configVersion: 1,
-      configTerm: 1,
-      self: true,
-      lastHeartbeatMessage: ''
+      host: 'lab4:27017',
+      arbiterOnly: false,
+      buildIndexes: true,
+      hidden: false,
+      priority: 1,
+      tags: {},
+      secondaryDelaySecs: Long('0'),
+      votes: 1
     },
     {
       _id: 1,
-      name: 'lab2:27019',
-      health: 1,
-      state: 2,
-      stateStr: 'SECONDARY',
-      uptime: 77,
-      optime: { ts: Timestamp({ t: 1727185374, i: 1 }), t: Long('1') },
-      optimeDurable: { ts: Timestamp({ t: 1727185374, i: 1 }), t: Long('1') },
-      optimeDate: ISODate('2024-09-24T13:42:54.000Z'),
-      optimeDurableDate: ISODate('2024-09-24T13:42:54.000Z'),
-      lastAppliedWallTime: ISODate('2024-09-24T13:42:55.363Z'),
-      lastDurableWallTime: ISODate('2024-09-24T13:42:55.363Z'),
-      lastHeartbeat: ISODate('2024-09-24T13:42:55.224Z'),
-      lastHeartbeatRecv: ISODate('2024-09-24T13:42:55.906Z'),
-      pingMs: Long('0'),
-      lastHeartbeatMessage: '',
-      syncSourceHost: 'lab1:27019',
-      syncSourceId: 0,
-      infoMessage: '',
-      configVersion: 1,
-      configTerm: 1
+      host: 'lab5:27017',
+      arbiterOnly: false,
+      buildIndexes: true,
+      hidden: false,
+      priority: 1,
+      tags: {},
+      secondaryDelaySecs: Long('0'),
+      votes: 1
     },
     {
       _id: 2,
-      name: 'lab3:27019',
-      health: 1,
-      state: 2,
-      stateStr: 'SECONDARY',
-      uptime: 77,
-      optime: { ts: Timestamp({ t: 1727185374, i: 1 }), t: Long('1') },
-      optimeDurable: { ts: Timestamp({ t: 1727185374, i: 1 }), t: Long('1') },
-      optimeDate: ISODate('2024-09-24T13:42:54.000Z'),
-      optimeDurableDate: ISODate('2024-09-24T13:42:54.000Z'),
-      lastAppliedWallTime: ISODate('2024-09-24T13:42:55.363Z'),
-      lastDurableWallTime: ISODate('2024-09-24T13:42:55.363Z'),
-      lastHeartbeat: ISODate('2024-09-24T13:42:55.224Z'),
-      lastHeartbeatRecv: ISODate('2024-09-24T13:42:55.904Z'),
-      pingMs: Long('0'),
-      lastHeartbeatMessage: '',
-      syncSourceHost: 'lab1:27019',
-      syncSourceId: 0,
-      infoMessage: '',
-      configVersion: 1,
-      configTerm: 1
+      host: 'lab6:27017',
+      arbiterOnly: false,
+      buildIndexes: true,
+      hidden: false,
+      priority: 1,
+      tags: {},
+      secondaryDelaySecs: Long('0'),
+      votes: 1
     }
   ],
+  protocolVersion: Long('1'),
+  writeConcernMajorityJournalDefault: true,
+  settings: {
+    chainingAllowed: true,
+    heartbeatIntervalMillis: 2000,
+    heartbeatTimeoutSecs: 10,
+    electionTimeoutMillis: 10000,
+    catchUpTimeoutMillis: -1,
+    catchUpTakeoverDelayMillis: 30000,
+    getLastErrorModes: {},
+    getLastErrorDefaults: { w: 1, wtimeout: 0 },
+    replicaSetId: ObjectId('66f520b97dac445eb7166c0d')
+  }
+}
+```
+
+### Создание 2-й replica set
+
+1. На каждом сервере в файле /etc/mongod.conf меняю/добавляю следующие параметры:
+```
+net:
+  port: 27017
+  bindIp: 0.0.0.0
+
+replication:
+   replSetName: shard02
+
+sharding:
+   clusterRole: shardsvr
+```
+
+2. На каждом сервере конфигурации запускаю сервис mongod:
+```
+systemctl start mongod
+```
+
+3. На одном из серверов захожу в консоль:
+```
+mongosh
+```
+
+4. Запускаю команду создания replica set конфигурации (с указанием приритетов роли мастера):
+```
+test> rs.initiate(
+...   {
+...     "_id": "shard02",
+...     members: [
+...       { "_id": 0, "host": "lab7:27017", "priority": 100 },
+...       { "_id": 1, "host": "lab8:27017", "priority": 90 },
+...       { "_id": 2, "host": "lab9:27017", "priority": 80 }
+...     ]
+...   }
+... )
+{ ok: 1 }
+```
+
+5. Запрашиваю конфигурацию созданной replica set:
+```
+shard02 [direct: primary] test> rs.conf()
+{
+  _id: 'shard02',
+  version: 1,
+  term: 2,
+  members: [
+    {
+      _id: 0,
+      host: 'lab7:27017',
+      arbiterOnly: false,
+      buildIndexes: true,
+      hidden: false,
+      priority: 100,
+      tags: {},
+      secondaryDelaySecs: Long('0'),
+      votes: 1
+    },
+    {
+      _id: 1,
+      host: 'lab8:27017',
+      arbiterOnly: false,
+      buildIndexes: true,
+      hidden: false,
+      priority: 90,
+      tags: {},
+      secondaryDelaySecs: Long('0'),
+      votes: 1
+    },
+    {
+      _id: 2,
+      host: 'lab9:27017',
+      arbiterOnly: false,
+      buildIndexes: true,
+      hidden: false,
+      priority: 80,
+      tags: {},
+      secondaryDelaySecs: Long('0'),
+      votes: 1
+    }
+  ],
+  protocolVersion: Long('1'),
+  writeConcernMajorityJournalDefault: true,
+  settings: {
+    chainingAllowed: true,
+    heartbeatIntervalMillis: 2000,
+    heartbeatTimeoutSecs: 10,
+    electionTimeoutMillis: 10000,
+    catchUpTimeoutMillis: -1,
+    catchUpTakeoverDelayMillis: 30000,
+    getLastErrorModes: {},
+    getLastErrorDefaults: { w: 1, wtimeout: 0 },
+    replicaSetId: ObjectId('66f52c9ec1565b3024b0e31e')
+  }
+}
+```
+
+### Создание 3-й replica set
+
+1. На каждом сервере в файле /etc/mongod.conf меняю/добавляю следующие параметры:
+```
+net:
+  port: 27017
+  bindIp: 0.0.0.0
+
+replication:
+   replSetName: shard03
+
+sharding:
+   clusterRole: shardsvr
+```
+
+2. На каждом сервере конфигурации запускаю сервис mongod:
+```
+systemctl start mongod
+```
+
+3. На одном из серверов захожу в консоль:
+```
+mongosh
+```
+
+4. Запускаю команду создания replica set конфигурации):
+```
+test> rs.initiate(
+...   {
+...     "_id": "shard03",
+...     members: [
+...       { "_id": 0, "host": "lab10:27017" },
+...       { "_id": 1, "host": "lab11:27017" },
+...       { "_id": 2, "host": "lab12:27017" }
+...     ]
+...   }
+... )
+{ ok: 1 }
+```
+
+5. Запрашиваю конфигурацию созданной replica set:
+```
+shard03 [direct: primary] test> rs.conf()
+{
+  _id: 'shard03',
+  version: 4,
+  term: 5,
+  members: [
+    {
+      _id: 0,
+      host: 'lab10:27017',
+      arbiterOnly: false,
+      buildIndexes: true,
+      hidden: false,
+      priority: 1,
+      tags: {},
+      secondaryDelaySecs: Long('0'),
+      votes: 1
+    },
+    {
+      _id: 1,
+      host: 'lab11:27017',
+      arbiterOnly: false,
+      buildIndexes: true,
+      hidden: false,
+      priority: 1,
+      tags: {},
+      secondaryDelaySecs: Long('0'),
+      votes: 1
+    },
+    {
+      _id: 2,
+      host: 'lab12:27017',
+      arbiterOnly: false,
+      buildIndexes: true,
+      hidden: false,
+      priority: 1,
+      tags: {},
+      secondaryDelaySecs: Long('0'),
+      votes: 1
+    }
+  ],
+  protocolVersion: Long('1'),
+  writeConcernMajorityJournalDefault: true,
+  settings: {
+    chainingAllowed: true,
+    heartbeatIntervalMillis: 2000,
+    heartbeatTimeoutSecs: 10,
+    electionTimeoutMillis: 10000,
+    catchUpTimeoutMillis: -1,
+    catchUpTakeoverDelayMillis: 30000,
+    getLastErrorModes: {},
+    getLastErrorDefaults: { w: 1, wtimeout: 0 },
+    replicaSetId: ObjectId('66f52f03e3fe0c9e81d1dc86')
+  }
+}
+```
+
+### Создание роутера mongos
+
+1. Создаю файл /etc/systemd/system/mongos.service для запуска сервиса mogos со следующим содержимым:
+```
+[Unit]
+Description=mongos
+After=mongos.service
+
+[Service]
+ExecStart=/usr/bin/mongos -f /etc/mongos.conf
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
+```
+
+2. Создаю файл /etc/mongos.conf со следующим содержимым:
+```
+systemLog:
+  destination: file
+  logAppend: true
+  path: /var/log/mongodb/mongos.log
+
+net:
+  port: 27017
+
+sharding:
+  configDB: cfg_replica/lab1:27019,lab2:27019,lab3:27019
+```
+
+3. Запускаю сервис mongos:
+```
+systemctl start mongos
+```
+
+4. Создаю 1-й шард:
+```
+sh.addShard("shard01/lab4:27017,lab5:27017,lab6:27017")
+
+[direct: mongos] test> sh.addShard("shard01/lab4:27017,lab5:27017,lab6:27017")
+{
+  shardAdded: 'shard01',
   ok: 1,
   '$clusterTime': {
-    clusterTime: Timestamp({ t: 1727185375, i: 1 }),
+    clusterTime: Timestamp({ t: 1727349890, i: 4 }),
     signature: {
       hash: Binary.createFromBase64('AAAAAAAAAAAAAAAAAAAAAAAAAAA=', 0),
       keyId: Long('0')
     }
   },
-  operationTime: Timestamp({ t: 1727185375, i: 1 })
+  operationTime: Timestamp({ t: 1727349890, i: 4 })
 }
 ```
 
-### Создание 1-й replica set
+5. Создаю 2-й шард:
+```
+sh.addShard("shard02/lab7:27017,lab8:27017,lab9:27017")
 
+[direct: mongos] test> sh.addShard("shard02/lab7:27017,lab8:27017,lab9:27017")
+{
+  shardAdded: 'shard02',
+  ok: 1,
+  '$clusterTime': {
+    clusterTime: Timestamp({ t: 1727349931, i: 13 }),
+    signature: {
+      hash: Binary.createFromBase64('AAAAAAAAAAAAAAAAAAAAAAAAAAA=', 0),
+      keyId: Long('0')
+    }
+  },
+  operationTime: Timestamp({ t: 1727349931, i: 3 })
+}
+```
+
+6. Создаю 3-й шард:
+```
+sh.addShard("shard03/lab10:27017,lab11:27017,lab12:27017")
+
+[direct: mongos] test> sh.addShard("shard03/lab10:27017,lab11:27017,lab12:27017")
+{
+  shardAdded: 'shard03',
+  ok: 1,
+  '$clusterTime': {
+    clusterTime: Timestamp({ t: 1727351093, i: 4 }),
+    signature: {
+      hash: Binary.createFromBase64('AAAAAAAAAAAAAAAAAAAAAAAAAAA=', 0),
+      keyId: Long('0')
+    }
+  },
+  operationTime: Timestamp({ t: 1727351093, i: 4 })
+}
+```
+
+7. ПРоверяю состояние шардирования:
+```
+[direct: mongos] test> sh.status()
+shardingVersion
+{ _id: 1, clusterId: ObjectId('66f2c19dd826ffeff5a2d6f5') }
+---
+shards
+[
+  {
+    _id: 'shard01',
+    host: 'shard01/lab4:27017,lab5:27017,lab6:27017',
+    state: 1,
+    topologyTime: Timestamp({ t: 1727349890, i: 1 })
+  },
+  {
+    _id: 'shard02',
+    host: 'shard02/lab7:27017,lab8:27017,lab9:27017',
+    state: 1,
+    topologyTime: Timestamp({ t: 1727349931, i: 1 })
+  },
+  {
+    _id: 'shard03',
+    host: 'shard03/lab10:27017,lab11:27017,lab12:27017',
+    state: 1,
+    topologyTime: Timestamp({ t: 1727351093, i: 2 })
+  }
+]
+---
+active mongoses
+[ { '7.0.14': 1 } ]
+---
+autosplit
+{ 'Currently enabled': 'yes' }
+---
+balancer
+{
+  'Currently enabled': 'yes',
+  'Failed balancer rounds in last 5 attempts': 0,
+  'Currently running': 'no',
+  'Migration Results for the last 24 hours': 'No recent migrations'
+}
+---
+databases
+[
+  {
+    database: { _id: 'config', primary: 'config', partitioned: true },
+    collections: {
+      'config.system.sessions': {
+        shardKey: { _id: 1 },
+        unique: false,
+        balancing: true,
+        chunkMetadata: [ { shard: 'shard01', nChunks: 1 } ],
+        chunks: [
+          { min: { _id: MinKey() }, max: { _id: MaxKey() }, 'on shard': 'shard01', 'last modified': Timestamp({ t: 1, i: 0 }) }
+        ],
+        tags: []
+      }
+    }
+  }
+]
+```
+
+### Шардирование таблицы
