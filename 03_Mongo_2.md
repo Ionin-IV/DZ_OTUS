@@ -798,4 +798,711 @@ Totals
 
 ### Проверка отработки отказов кластером
 
+1. Останавливаю сервис mongod на первом узле первого шарда, кторый находится в роли primary. Primary становится второй узел:
+```
+shard01 [direct: primary] test> rs.status()
+{
+  set: 'shard01',
+  date: ISODate('2024-10-02T12:31:46.199Z'),
+  myState: 1,
+  term: Long('9'),
+  syncSourceHost: '',
+  syncSourceId: -1,
+  heartbeatIntervalMillis: Long('2000'),
+  majorityVoteCount: 2,
+  writeMajorityCount: 2,
+  votingMembersCount: 3,
+  writableVotingMembersCount: 3,
+  optimes: {
+    lastCommittedOpTime: { ts: Timestamp({ t: 1727872300, i: 1 }), t: Long('9') },
+    lastCommittedWallTime: ISODate('2024-10-02T12:31:40.524Z'),
+    readConcernMajorityOpTime: { ts: Timestamp({ t: 1727872300, i: 1 }), t: Long('9') },
+    appliedOpTime: { ts: Timestamp({ t: 1727872300, i: 1 }), t: Long('9') },
+    durableOpTime: { ts: Timestamp({ t: 1727872300, i: 1 }), t: Long('9') },
+    lastAppliedWallTime: ISODate('2024-10-02T12:31:40.524Z'),
+    lastDurableWallTime: ISODate('2024-10-02T12:31:40.524Z')
+  },
+  lastStableRecoveryTimestamp: Timestamp({ t: 1727872290, i: 1 }),
+  electionCandidateMetrics: {
+    lastElectionReason: 'stepUpRequestSkipDryRun',
+    lastElectionDate: ISODate('2024-10-02T12:31:10.505Z'),
+    electionTerm: Long('9'),
+    lastCommittedOpTimeAtElection: { ts: Timestamp({ t: 1727872270, i: 1 }), t: Long('8') },
+    lastSeenOpTimeAtElection: { ts: Timestamp({ t: 1727872270, i: 1 }), t: Long('8') },
+    numVotesNeeded: 2,
+    priorityAtElection: 1,
+    electionTimeoutMillis: Long('10000'),
+    priorPrimaryMemberId: 0,
+    numCatchUpOps: Long('0'),
+    newTermStartDate: ISODate('2024-10-02T12:31:10.513Z'),
+    wMajorityWriteAvailabilityDate: ISODate('2024-10-02T12:31:10.521Z')
+  },
+  electionParticipantMetrics: {
+    votedForCandidate: true,
+    electionTerm: Long('8'),
+    lastVoteDate: ISODate('2024-10-02T12:28:40.020Z'),
+    electionCandidateMemberId: 0,
+    voteReason: '',
+    lastAppliedOpTimeAtElection: { ts: Timestamp({ t: 1727872103, i: 1 }), t: Long('7') },
+    maxAppliedOpTimeInSet: { ts: Timestamp({ t: 1727872103, i: 1 }), t: Long('7') },
+    priorityAtElection: 1
+  },
+  members: [
+    {
+      _id: 0,
+      name: 'lab4:27017',
+      health: 0,
+      state: 8,
+      stateStr: '(not reachable/healthy)',
+      uptime: 0,
+      optime: { ts: Timestamp({ t: 0, i: 0 }), t: Long('-1') },
+      optimeDurable: { ts: Timestamp({ t: 0, i: 0 }), t: Long('-1') },
+      optimeDate: ISODate('1970-01-01T00:00:00.000Z'),
+      optimeDurableDate: ISODate('1970-01-01T00:00:00.000Z'),
+      lastAppliedWallTime: ISODate('2024-10-02T12:31:20.521Z'),
+      lastDurableWallTime: ISODate('2024-10-02T12:31:20.521Z'),
+      lastHeartbeat: ISODate('2024-10-02T12:31:44.932Z'),
+      lastHeartbeatRecv: ISODate('2024-10-02T12:31:25.088Z'),
+      pingMs: Long('0'),
+      lastHeartbeatMessage: 'Error connecting to lab4:27017 (192.168.1.24:27017) :: caused by :: onInvoke :: caused by :: Connection refused',
+      syncSourceHost: '',
+      syncSourceId: -1,
+      infoMessage: '',
+      configVersion: 1,
+      configTerm: 9
+    },
+    {
+      _id: 1,
+      name: 'lab5:27017',
+      health: 1,
+      state: 1,
+      stateStr: 'PRIMARY',
+      uptime: 1510,
+      optime: { ts: Timestamp({ t: 1727872300, i: 1 }), t: Long('9') },
+      optimeDate: ISODate('2024-10-02T12:31:40.000Z'),
+      lastAppliedWallTime: ISODate('2024-10-02T12:31:40.524Z'),
+      lastDurableWallTime: ISODate('2024-10-02T12:31:40.524Z'),
+      syncSourceHost: '',
+      syncSourceId: -1,
+      infoMessage: '',
+      electionTime: Timestamp({ t: 1727872270, i: 2 }),
+      electionDate: ISODate('2024-10-02T12:31:10.000Z'),
+      configVersion: 1,
+      configTerm: 9,
+      self: true,
+      lastHeartbeatMessage: ''
+    },
+    {
+      _id: 2,
+      name: 'lab6:27017',
+      health: 1,
+      state: 2,
+      stateStr: 'SECONDARY',
+      uptime: 83,
+      optime: { ts: Timestamp({ t: 1727872300, i: 1 }), t: Long('9') },
+      optimeDurable: { ts: Timestamp({ t: 1727872300, i: 1 }), t: Long('9') },
+      optimeDate: ISODate('2024-10-02T12:31:40.000Z'),
+      optimeDurableDate: ISODate('2024-10-02T12:31:40.000Z'),
+      lastAppliedWallTime: ISODate('2024-10-02T12:31:40.524Z'),
+      lastDurableWallTime: ISODate('2024-10-02T12:31:40.524Z'),
+      lastHeartbeat: ISODate('2024-10-02T12:31:44.805Z'),
+      lastHeartbeatRecv: ISODate('2024-10-02T12:31:44.559Z'),
+      pingMs: Long('0'),
+      lastHeartbeatMessage: '',
+      syncSourceHost: 'lab5:27017',
+      syncSourceId: 1,
+      infoMessage: '',
+      configVersion: 1,
+      configTerm: 9
+    }
+  ],
+  ok: 1,
+  '$clusterTime': {
+    clusterTime: Timestamp({ t: 1727872301, i: 1 }),
+    signature: {
+      hash: Binary.createFromBase64('AAAAAAAAAAAAAAAAAAAAAAAAAAA=', 0),
+      keyId: Long('0')
+    }
+  },
+  operationTime: Timestamp({ t: 1727872300, i: 1 })
+}
+```
 
+2. Загружаю в БД 100 документов. Операция проходит успешно.
+```
+[root@lab13 ~]# mongoimport --db=test --collection=operations --file=3.json
+2024-10-02T15:41:02.962+0300    connected to: mongodb://localhost/
+2024-10-02T15:41:02.976+0300    100 document(s) imported successfully. 0 document(s) failed to import.
+```
+
+3. Останавливаю сервис mongod на втором узле первого шарда, кторый находится в роли primary. Оставшийся третий узел отсался в роли secondary:
+```
+shard01 [direct: secondary] test> rs.status()
+{
+  set: 'shard01',
+  date: ISODate('2024-10-02T12:43:14.566Z'),
+  myState: 2,
+  term: Long('10'),
+  syncSourceHost: '',
+  syncSourceId: -1,
+  heartbeatIntervalMillis: Long('2000'),
+  majorityVoteCount: 2,
+  writeMajorityCount: 2,
+  votingMembersCount: 3,
+  writableVotingMembersCount: 3,
+  optimes: {
+    lastCommittedOpTime: { ts: Timestamp({ t: 1727872970, i: 1 }), t: Long('9') },
+    lastCommittedWallTime: ISODate('2024-10-02T12:42:50.833Z'),
+    readConcernMajorityOpTime: { ts: Timestamp({ t: 1727872970, i: 1 }), t: Long('9') },
+    appliedOpTime: { ts: Timestamp({ t: 1727872970, i: 1 }), t: Long('9') },
+    durableOpTime: { ts: Timestamp({ t: 1727872970, i: 1 }), t: Long('9') },
+    lastAppliedWallTime: ISODate('2024-10-02T12:42:50.833Z'),
+    lastDurableWallTime: ISODate('2024-10-02T12:42:50.833Z')
+  },
+  lastStableRecoveryTimestamp: Timestamp({ t: 1727872932, i: 4 }),
+  electionParticipantMetrics: {
+    votedForCandidate: true,
+    electionTerm: Long('9'),
+    lastVoteDate: ISODate('2024-10-02T12:31:10.079Z'),
+    electionCandidateMemberId: 1,
+    voteReason: '',
+    lastAppliedOpTimeAtElection: { ts: Timestamp({ t: 1727872270, i: 1 }), t: Long('8') },
+    maxAppliedOpTimeInSet: { ts: Timestamp({ t: 1727872270, i: 1 }), t: Long('8') },
+    priorityAtElection: 1
+  },
+  members: [
+    {
+      _id: 0,
+      name: 'lab4:27017',
+      health: 0,
+      state: 8,
+      stateStr: '(not reachable/healthy)',
+      uptime: 0,
+      optime: { ts: Timestamp({ t: 0, i: 0 }), t: Long('-1') },
+      optimeDurable: { ts: Timestamp({ t: 0, i: 0 }), t: Long('-1') },
+      optimeDate: ISODate('1970-01-01T00:00:00.000Z'),
+      optimeDurableDate: ISODate('1970-01-01T00:00:00.000Z'),
+      lastAppliedWallTime: ISODate('2024-10-02T12:31:10.073Z'),
+      lastDurableWallTime: ISODate('2024-10-02T12:31:10.073Z'),
+      lastHeartbeat: ISODate('2024-10-02T12:43:14.151Z'),
+      lastHeartbeatRecv: ISODate('2024-10-02T12:31:24.660Z'),
+      pingMs: Long('0'),
+      lastHeartbeatMessage: 'Error connecting to lab4:27017 (192.168.1.24:27017) :: caused by :: onInvoke :: caused by :: Connection refused',
+      syncSourceHost: '',
+      syncSourceId: -1,
+      infoMessage: '',
+      configVersion: 1,
+      configTerm: 9
+    },
+    {
+      _id: 1,
+      name: 'lab5:27017',
+      health: 0,
+      state: 8,
+      stateStr: '(not reachable/healthy)',
+      uptime: 0,
+      optime: { ts: Timestamp({ t: 0, i: 0 }), t: Long('-1') },
+      optimeDurable: { ts: Timestamp({ t: 0, i: 0 }), t: Long('-1') },
+      optimeDate: ISODate('1970-01-01T00:00:00.000Z'),
+      optimeDurableDate: ISODate('1970-01-01T00:00:00.000Z'),
+      lastAppliedWallTime: ISODate('2024-10-02T12:42:50.833Z'),
+      lastDurableWallTime: ISODate('2024-10-02T12:42:50.833Z'),
+      lastHeartbeat: ISODate('2024-10-02T12:43:14.235Z'),
+      lastHeartbeatRecv: ISODate('2024-10-02T12:43:06.433Z'),
+      pingMs: Long('0'),
+      lastHeartbeatMessage: 'Error connecting to lab5:27017 (192.168.1.25:27017) :: caused by :: onInvoke :: caused by :: Connection refused',
+      syncSourceHost: '',
+      syncSourceId: -1,
+      infoMessage: '',
+      configVersion: 1,
+      configTerm: 9
+    },
+    {
+      _id: 2,
+      name: 'lab6:27017',
+      health: 1,
+      state: 2,
+      stateStr: 'SECONDARY',
+      uptime: 773,
+      optime: { ts: Timestamp({ t: 1727872970, i: 1 }), t: Long('9') },
+      optimeDate: ISODate('2024-10-02T12:42:50.000Z'),
+      lastAppliedWallTime: ISODate('2024-10-02T12:42:50.833Z'),
+      lastDurableWallTime: ISODate('2024-10-02T12:42:50.833Z'),
+      syncSourceHost: '',
+      syncSourceId: -1,
+      infoMessage: 'Could not find member to sync from',
+      configVersion: 1,
+      configTerm: 9,
+      self: true,
+      lastHeartbeatMessage: ''
+    }
+  ],
+  ok: 1,
+  '$clusterTime': {
+    clusterTime: Timestamp({ t: 1727872992, i: 1 }),
+    signature: {
+      hash: Binary.createFromBase64('AAAAAAAAAAAAAAAAAAAAAAAAAAA=', 0),
+      keyId: Long('0')
+    }
+  },
+  operationTime: Timestamp({ t: 1727872970, i: 1 })
+}
+```
+
+4. Команда просмотра распределения коллекции по шардам выдаёт ошибку:
+```
+[direct: mongos] test> db.operations.getShardDistribution()
+MongoServerError[FailedToSatisfyReadPreference]: Could not find host matching read preference { mode: "primary" } for set shard01
+```
+
+5. При загрузке ещё 100 документов, 35 из них не загружается из-за недоступности 1-го шарда:
+```
+[root@lab13 ~]# mongoimport --db=test --collection=operations --file=4.json
+2024-10-02T15:48:38.754+0300    connected to: mongodb://localhost/
+2024-10-02T15:48:41.754+0300    [########################] test.operations      14.0KB/14.0KB (100.0%)
+2024-10-02T15:48:44.755+0300    [########################] test.operations      14.0KB/14.0KB (100.0%)
+2024-10-02T15:48:47.755+0300    [########################] test.operations      14.0KB/14.0KB (100.0%)
+2024-10-02T15:48:50.755+0300    [########################] test.operations      14.0KB/14.0KB (100.0%)
+2024-10-02T15:48:53.755+0300    [########################] test.operations      14.0KB/14.0KB (100.0%)
+2024-10-02T15:48:53.756+0300    [########################] test.operations      14.0KB/14.0KB (100.0%)
+2024-10-02T15:48:53.756+0300    Failed: bulk write exception: write errors: [Write results unavailable from failing to target a host in the shard shard01 :: caused by :: Could not find host matching read preference { mode: "primary" } for set shard01, Write results unavailable from failing to target a host in the shard shard01 :: caused by :: Could not find host matching read preference { mode: "primary" } for set shard01, Write results unavailable from failing to target a host in the shard shard01 :: caused by :: Could not find host matching read preference { mode: "primary" } for set shard01, Write results unavailable from failing to target a host in the shard shard01 :: caused by :: Could not find host matching read preference { mode: "primary" } for set shard01, Write results unavailable from failing to target a host in the shard shard01 :: caused by :: Could not find host matching read preference { mode: "primary" } for set shard01, Write results unavailable from failing to target a host in the shard shard01 :: caused by :: Could not find host matching read preference { mode: "primary" } for set shard01, Write results unavailable from failing to target a host in the shard shard01 :: caused by :: Could not find host matching read preference { mode: "primary" } for set shard01, Write results unavailable from failing to target a host in the shard shard01 :: caused by :: Could not find host matching read preference { mode: "primary" } for set shard01, Write results unavailable from failing to target a host in the shard shard01 :: caused by :: Could not find host matching read preference { mode: "primary" } for set shard01, Write results unavailable from failing to target a host in the shard shard01 :: caused by :: Could not find host matching read preference { mode: "primary" } for set shard01, Write results unavailable from failing to target a host in the shard shard01 :: caused by :: Could not find host matching read preference { mode: "primary" } for set shard01, Write results unavailable from failing to target a host in the shard shard01 :: caused by :: Could not find host matching read preference { mode: "primary" } for set shard01, +23 more errors...]
+2024-10-02T15:48:53.756+0300    65 document(s) imported successfully. 35 document(s) failed to import.
+```
+
+6. Запускаю остановленные ранее сервися mongod на 1 и 2 узлах. 3-й узел становится primary, а остальные secondary:
+```
+shard01 [direct: primary] test> rs.status()
+{
+  set: 'shard01',
+  date: ISODate('2024-10-02T12:50:32.007Z'),
+  myState: 1,
+  term: Long('11'),
+  syncSourceHost: '',
+  syncSourceId: -1,
+  heartbeatIntervalMillis: Long('2000'),
+  majorityVoteCount: 2,
+  writeMajorityCount: 2,
+  votingMembersCount: 3,
+  writableVotingMembersCount: 3,
+  optimes: {
+    lastCommittedOpTime: { ts: Timestamp({ t: 1727873422, i: 2 }), t: Long('11') },
+    lastCommittedWallTime: ISODate('2024-10-02T12:50:22.517Z'),
+    readConcernMajorityOpTime: { ts: Timestamp({ t: 1727873422, i: 2 }), t: Long('11') },
+    appliedOpTime: { ts: Timestamp({ t: 1727873422, i: 2 }), t: Long('11') },
+    durableOpTime: { ts: Timestamp({ t: 1727873422, i: 2 }), t: Long('11') },
+    lastAppliedWallTime: ISODate('2024-10-02T12:50:22.517Z'),
+    lastDurableWallTime: ISODate('2024-10-02T12:50:22.517Z')
+  },
+  lastStableRecoveryTimestamp: Timestamp({ t: 1727872970, i: 1 }),
+  electionCandidateMetrics: {
+    lastElectionReason: 'electionTimeout',
+    lastElectionDate: ISODate('2024-10-02T12:50:22.505Z'),
+    electionTerm: Long('11'),
+    lastCommittedOpTimeAtElection: { ts: Timestamp({ t: 1727872970, i: 1 }), t: Long('9') },
+    lastSeenOpTimeAtElection: { ts: Timestamp({ t: 1727872970, i: 1 }), t: Long('9') },
+    numVotesNeeded: 2,
+    priorityAtElection: 1,
+    electionTimeoutMillis: Long('10000'),
+    numCatchUpOps: Long('0'),
+    newTermStartDate: ISODate('2024-10-02T12:50:22.517Z'),
+    wMajorityWriteAvailabilityDate: ISODate('2024-10-02T12:50:22.532Z')
+  },
+  electionParticipantMetrics: {
+    votedForCandidate: true,
+    electionTerm: Long('9'),
+    lastVoteDate: ISODate('2024-10-02T12:31:10.079Z'),
+    electionCandidateMemberId: 1,
+    voteReason: '',
+    lastAppliedOpTimeAtElection: { ts: Timestamp({ t: 1727872270, i: 1 }), t: Long('8') },
+    maxAppliedOpTimeInSet: { ts: Timestamp({ t: 1727872270, i: 1 }), t: Long('8') },
+    priorityAtElection: 1
+  },
+  members: [
+    {
+      _id: 0,
+      name: 'lab4:27017',
+      health: 1,
+      state: 2,
+      stateStr: 'SECONDARY',
+      uptime: 16,
+      optime: { ts: Timestamp({ t: 1727873422, i: 2 }), t: Long('11') },
+      optimeDurable: { ts: Timestamp({ t: 1727873422, i: 2 }), t: Long('11') },
+      optimeDate: ISODate('2024-10-02T12:50:22.000Z'),
+      optimeDurableDate: ISODate('2024-10-02T12:50:22.000Z'),
+      lastAppliedWallTime: ISODate('2024-10-02T12:50:22.517Z'),
+      lastDurableWallTime: ISODate('2024-10-02T12:50:22.517Z'),
+      lastHeartbeat: ISODate('2024-10-02T12:50:30.525Z'),
+      lastHeartbeatRecv: ISODate('2024-10-02T12:50:31.037Z'),
+      pingMs: Long('0'),
+      lastHeartbeatMessage: '',
+      syncSourceHost: 'lab6:27017',
+      syncSourceId: 2,
+      infoMessage: '',
+      configVersion: 1,
+      configTerm: 11
+    },
+    {
+      _id: 1,
+      name: 'lab5:27017',
+      health: 1,
+      state: 2,
+      stateStr: 'SECONDARY',
+      uptime: 9,
+      optime: { ts: Timestamp({ t: 1727873422, i: 2 }), t: Long('11') },
+      optimeDurable: { ts: Timestamp({ t: 1727873422, i: 2 }), t: Long('11') },
+      optimeDate: ISODate('2024-10-02T12:50:22.000Z'),
+      optimeDurableDate: ISODate('2024-10-02T12:50:22.000Z'),
+      lastAppliedWallTime: ISODate('2024-10-02T12:50:22.517Z'),
+      lastDurableWallTime: ISODate('2024-10-02T12:50:22.517Z'),
+      lastHeartbeat: ISODate('2024-10-02T12:50:30.558Z'),
+      lastHeartbeatRecv: ISODate('2024-10-02T12:50:29.593Z'),
+      pingMs: Long('0'),
+      lastHeartbeatMessage: '',
+      syncSourceHost: 'lab6:27017',
+      syncSourceId: 2,
+      infoMessage: '',
+      configVersion: 1,
+      configTerm: 11
+    },
+    {
+      _id: 2,
+      name: 'lab6:27017',
+      health: 1,
+      state: 1,
+      stateStr: 'PRIMARY',
+      uptime: 1211,
+      optime: { ts: Timestamp({ t: 1727873422, i: 2 }), t: Long('11') },
+      optimeDate: ISODate('2024-10-02T12:50:22.000Z'),
+      lastAppliedWallTime: ISODate('2024-10-02T12:50:22.517Z'),
+      lastDurableWallTime: ISODate('2024-10-02T12:50:22.517Z'),
+      syncSourceHost: '',
+      syncSourceId: -1,
+      infoMessage: 'Could not find member to sync from',
+      electionTime: Timestamp({ t: 1727873422, i: 1 }),
+      electionDate: ISODate('2024-10-02T12:50:22.000Z'),
+      configVersion: 1,
+      configTerm: 11,
+      self: true,
+      lastHeartbeatMessage: ''
+    }
+  ],
+  ok: 1,
+  '$clusterTime': {
+    clusterTime: Timestamp({ t: 1727873429, i: 1 }),
+    signature: {
+      hash: Binary.createFromBase64('AAAAAAAAAAAAAAAAAAAAAAAAAAA=', 0),
+      keyId: Long('0')
+    }
+  },
+  operationTime: Timestamp({ t: 1727873422, i: 2 })
+}
+```
+
+7. Количество документов на 1-м шарде не изменилось, т.к. они не смогли загрузиться, а на 2-3 шардах докуменыт добавились:
+```
+[direct: mongos] test> db.operations.getShardDistribution()
+Shard shard03 at shard03/lab10:27017,lab11:27017,lab12:27017
+{
+  data: '4.7MiB',
+  docs: 43968,
+  chunks: 1,
+  'estimated data per chunk': '4.7MiB',
+  'estimated docs per chunk': 43968
+}
+---
+Shard shard01 at shard01/lab4:27017,lab5:27017,lab6:27017
+{
+  data: '3.01MiB',
+  docs: 28138,
+  chunks: 2,
+  'estimated data per chunk': '1.5MiB',
+  'estimated docs per chunk': 14069
+}
+---
+Shard shard02 at shard02/lab7:27017,lab8:27017,lab9:27017
+{
+  data: '3.01MiB',
+  docs: 28159,
+  chunks: 2,
+  'estimated data per chunk': '1.5MiB',
+  'estimated docs per chunk': 14079
+}
+---
+Totals
+{
+  data: '10.74MiB',
+  docs: 100265,
+  chunks: 5,
+  'Shard shard03': [
+    '43.84 % data',
+    '43.85 % docs in cluster',
+    '112B avg obj size on shard'
+  ],
+  'Shard shard01': [
+    '28.06 % data',
+    '28.06 % docs in cluster',
+    '112B avg obj size on shard'
+  ],
+  'Shard shard02': [
+    '28.08 % data',
+    '28.08 % docs in cluster',
+    '112B avg obj size on shard'
+  ]
+}
+```
+
+*ВЫВОД: для отказоусточивости, в каждой replica set должно быть не менее 3-х узлов.
+
+8. Останавливаю сервис mongod на первом узле второго шарда, кторый находится в роли primary. Primary становится второй узел:
+```
+shard02 [direct: primary] test> rs.status()
+{
+  set: 'shard02',
+  date: ISODate('2024-10-02T12:52:52.047Z'),
+  myState: 1,
+  term: Long('6'),
+  syncSourceHost: '',
+  syncSourceId: -1,
+  heartbeatIntervalMillis: Long('2000'),
+  majorityVoteCount: 2,
+  writeMajorityCount: 2,
+  votingMembersCount: 3,
+  writableVotingMembersCount: 3,
+  optimes: {
+    lastCommittedOpTime: { ts: Timestamp({ t: 1727873568, i: 1 }), t: Long('6') },
+    lastCommittedWallTime: ISODate('2024-10-02T12:52:48.946Z'),
+    readConcernMajorityOpTime: { ts: Timestamp({ t: 1727873568, i: 1 }), t: Long('6') },
+    appliedOpTime: { ts: Timestamp({ t: 1727873568, i: 1 }), t: Long('6') },
+    durableOpTime: { ts: Timestamp({ t: 1727873568, i: 1 }), t: Long('6') },
+    lastAppliedWallTime: ISODate('2024-10-02T12:52:48.946Z'),
+    lastDurableWallTime: ISODate('2024-10-02T12:52:48.946Z')
+  },
+  lastStableRecoveryTimestamp: Timestamp({ t: 1727873520, i: 1 }),
+  electionCandidateMetrics: {
+    lastElectionReason: 'stepUpRequestSkipDryRun',
+    lastElectionDate: ISODate('2024-10-02T12:52:18.925Z'),
+    electionTerm: Long('6'),
+    lastCommittedOpTimeAtElection: { ts: Timestamp({ t: 1727873530, i: 1 }), t: Long('5') },
+    lastSeenOpTimeAtElection: { ts: Timestamp({ t: 1727873530, i: 1 }), t: Long('5') },
+    numVotesNeeded: 2,
+    priorityAtElection: 90,
+    electionTimeoutMillis: Long('10000'),
+    priorPrimaryMemberId: 0,
+    numCatchUpOps: Long('0'),
+    newTermStartDate: ISODate('2024-10-02T12:52:18.936Z'),
+    wMajorityWriteAvailabilityDate: ISODate('2024-10-02T12:52:18.942Z')
+  },
+  electionParticipantMetrics: {
+    votedForCandidate: true,
+    electionTerm: Long('5'),
+    lastVoteDate: ISODate('2024-10-02T12:12:39.828Z'),
+    electionCandidateMemberId: 0,
+    voteReason: '',
+    lastAppliedOpTimeAtElection: { ts: Timestamp({ t: 1727871155, i: 1 }), t: Long('4') },
+    maxAppliedOpTimeInSet: { ts: Timestamp({ t: 1727871155, i: 1 }), t: Long('4') },
+    priorityAtElection: 90
+  },
+  members: [
+    {
+      _id: 0,
+      name: 'lab7:27017',
+      health: 0,
+      state: 8,
+      stateStr: '(not reachable/healthy)',
+      uptime: 0,
+      optime: { ts: Timestamp({ t: 0, i: 0 }), t: Long('-1') },
+      optimeDurable: { ts: Timestamp({ t: 0, i: 0 }), t: Long('-1') },
+      optimeDate: ISODate('1970-01-01T00:00:00.000Z'),
+      optimeDurableDate: ISODate('1970-01-01T00:00:00.000Z'),
+      lastAppliedWallTime: ISODate('2024-10-02T12:52:23.327Z'),
+      lastDurableWallTime: ISODate('2024-10-02T12:52:23.327Z'),
+      lastHeartbeat: ISODate('2024-10-02T12:52:50.960Z'),
+      lastHeartbeatRecv: ISODate('2024-10-02T12:52:32.943Z'),
+      pingMs: Long('0'),
+      lastHeartbeatMessage: 'Error connecting to lab7:27017 (192.168.1.27:27017) :: caused by :: onInvoke :: caused by :: Connection refused',
+      syncSourceHost: '',
+      syncSourceId: -1,
+      infoMessage: '',
+      configVersion: 2,
+      configTerm: 6
+    },
+    {
+      _id: 1,
+      name: 'lab8:27017',
+      health: 1,
+      state: 1,
+      stateStr: 'PRIMARY',
+      uptime: 18949,
+      optime: { ts: Timestamp({ t: 1727873568, i: 1 }), t: Long('6') },
+      optimeDate: ISODate('2024-10-02T12:52:48.000Z'),
+      lastAppliedWallTime: ISODate('2024-10-02T12:52:48.946Z'),
+      lastDurableWallTime: ISODate('2024-10-02T12:52:48.946Z'),
+      syncSourceHost: '',
+      syncSourceId: -1,
+      infoMessage: '',
+      electionTime: Timestamp({ t: 1727873538, i: 2 }),
+      electionDate: ISODate('2024-10-02T12:52:18.000Z'),
+      configVersion: 2,
+      configTerm: 6,
+      self: true,
+      lastHeartbeatMessage: ''
+    },
+    {
+      _id: 2,
+      name: 'lab9:27017',
+      health: 1,
+      state: 2,
+      stateStr: 'SECONDARY',
+      uptime: 18912,
+      optime: { ts: Timestamp({ t: 1727873568, i: 1 }), t: Long('6') },
+      optimeDurable: { ts: Timestamp({ t: 1727873568, i: 1 }), t: Long('6') },
+      optimeDate: ISODate('2024-10-02T12:52:48.000Z'),
+      optimeDurableDate: ISODate('2024-10-02T12:52:48.000Z'),
+      lastAppliedWallTime: ISODate('2024-10-02T12:52:48.946Z'),
+      lastDurableWallTime: ISODate('2024-10-02T12:52:48.946Z'),
+      lastHeartbeat: ISODate('2024-10-02T12:52:50.958Z'),
+      lastHeartbeatRecv: ISODate('2024-10-02T12:52:50.955Z'),
+      pingMs: Long('0'),
+      lastHeartbeatMessage: '',
+      syncSourceHost: 'lab8:27017',
+      syncSourceId: 1,
+      infoMessage: '',
+      configVersion: 2,
+      configTerm: 6
+    }
+  ],
+  ok: 1,
+  '$clusterTime': {
+    clusterTime: Timestamp({ t: 1727873569, i: 1 }),
+    signature: {
+      hash: Binary.createFromBase64('AAAAAAAAAAAAAAAAAAAAAAAAAAA=', 0),
+      keyId: Long('0')
+    }
+  },
+  operationTime: Timestamp({ t: 1727873568, i: 1 })
+}
+```
+
+9. Запускаю сервис mongod на 1-м узле 2-го шарда. Он, в соответствии с заданными приоритетами, опять становится primary:
+```
+shard02 [direct: primary] test> rs.status()
+{
+  set: 'shard02',
+  date: ISODate('2024-10-02T12:53:36.293Z'),
+  myState: 1,
+  term: Long('7'),
+  syncSourceHost: '',
+  syncSourceId: -1,
+  heartbeatIntervalMillis: Long('2000'),
+  majorityVoteCount: 2,
+  writeMajorityCount: 2,
+  votingMembersCount: 3,
+  writableVotingMembersCount: 3,
+  optimes: {
+    lastCommittedOpTime: { ts: Timestamp({ t: 1727873613, i: 2 }), t: Long('7') },
+    lastCommittedWallTime: ISODate('2024-10-02T12:53:33.190Z'),
+    readConcernMajorityOpTime: { ts: Timestamp({ t: 1727873613, i: 2 }), t: Long('7') },
+    appliedOpTime: { ts: Timestamp({ t: 1727873613, i: 2 }), t: Long('7') },
+    durableOpTime: { ts: Timestamp({ t: 1727873613, i: 2 }), t: Long('7') },
+    lastAppliedWallTime: ISODate('2024-10-02T12:53:33.190Z'),
+    lastDurableWallTime: ISODate('2024-10-02T12:53:33.190Z')
+  },
+  lastStableRecoveryTimestamp: Timestamp({ t: 1727873543, i: 2 }),
+  electionCandidateMetrics: {
+    lastElectionReason: 'priorityTakeover',
+    lastElectionDate: ISODate('2024-10-02T12:53:33.180Z'),
+    electionTerm: Long('7'),
+    lastCommittedOpTimeAtElection: { ts: Timestamp({ t: 1727873608, i: 1 }), t: Long('6') },
+    lastSeenOpTimeAtElection: { ts: Timestamp({ t: 1727873608, i: 1 }), t: Long('6') },
+    numVotesNeeded: 2,
+    priorityAtElection: 100,
+    electionTimeoutMillis: Long('10000'),
+    priorPrimaryMemberId: 1,
+    numCatchUpOps: Long('0'),
+    newTermStartDate: ISODate('2024-10-02T12:53:33.190Z'),
+    wMajorityWriteAvailabilityDate: ISODate('2024-10-02T12:53:33.205Z')
+  },
+  members: [
+    {
+      _id: 0,
+      name: 'lab7:27017',
+      health: 1,
+      state: 1,
+      stateStr: 'PRIMARY',
+      uptime: 14,
+      optime: { ts: Timestamp({ t: 1727873613, i: 2 }), t: Long('7') },
+      optimeDate: ISODate('2024-10-02T12:53:33.000Z'),
+      lastAppliedWallTime: ISODate('2024-10-02T12:53:33.190Z'),
+      lastDurableWallTime: ISODate('2024-10-02T12:53:33.190Z'),
+      syncSourceHost: '',
+      syncSourceId: -1,
+      infoMessage: '',
+      electionTime: Timestamp({ t: 1727873613, i: 1 }),
+      electionDate: ISODate('2024-10-02T12:53:33.000Z'),
+      configVersion: 2,
+      configTerm: 7,
+      self: true,
+      lastHeartbeatMessage: ''
+    },
+    {
+      _id: 1,
+      name: 'lab8:27017',
+      health: 1,
+      state: 2,
+      stateStr: 'SECONDARY',
+      uptime: 13,
+      optime: { ts: Timestamp({ t: 1727873613, i: 2 }), t: Long('7') },
+      optimeDurable: { ts: Timestamp({ t: 1727873613, i: 2 }), t: Long('7') },
+      optimeDate: ISODate('2024-10-02T12:53:33.000Z'),
+      optimeDurableDate: ISODate('2024-10-02T12:53:33.000Z'),
+      lastAppliedWallTime: ISODate('2024-10-02T12:53:33.190Z'),
+      lastDurableWallTime: ISODate('2024-10-02T12:53:33.190Z'),
+      lastHeartbeat: ISODate('2024-10-02T12:53:35.199Z'),
+      lastHeartbeatRecv: ISODate('2024-10-02T12:53:35.693Z'),
+      pingMs: Long('0'),
+      lastHeartbeatMessage: '',
+      syncSourceHost: 'lab7:27017',
+      syncSourceId: 0,
+      infoMessage: '',
+      configVersion: 2,
+      configTerm: 7
+    },
+    {
+      _id: 2,
+      name: 'lab9:27017',
+      health: 1,
+      state: 2,
+      stateStr: 'SECONDARY',
+      uptime: 13,
+      optime: { ts: Timestamp({ t: 1727873613, i: 2 }), t: Long('7') },
+      optimeDurable: { ts: Timestamp({ t: 1727873613, i: 2 }), t: Long('7') },
+      optimeDate: ISODate('2024-10-02T12:53:33.000Z'),
+      optimeDurableDate: ISODate('2024-10-02T12:53:33.000Z'),
+      lastAppliedWallTime: ISODate('2024-10-02T12:53:33.190Z'),
+      lastDurableWallTime: ISODate('2024-10-02T12:53:33.190Z'),
+      lastHeartbeat: ISODate('2024-10-02T12:53:35.199Z'),
+      lastHeartbeatRecv: ISODate('2024-10-02T12:53:35.198Z'),
+      pingMs: Long('0'),
+      lastHeartbeatMessage: '',
+      syncSourceHost: 'lab8:27017',
+      syncSourceId: 1,
+      infoMessage: '',
+      configVersion: 2,
+      configTerm: 7
+    }
+  ],
+  ok: 1,
+  '$clusterTime': {
+    clusterTime: Timestamp({ t: 1727873613, i: 2 }),
+    signature: {
+      hash: Binary.createFromBase64('AAAAAAAAAAAAAAAAAAAAAAAAAAA=', 0),
+      keyId: Long('0')
+    }
+  },
+  operationTime: Timestamp({ t: 1727873613, i: 2 })
+}
+```
+
+*ВЫВОД: если нужна жёсткая привязка роли к узлам, то это можно сделать с помощью приоритетов.
+
+### Работа с пользователями
