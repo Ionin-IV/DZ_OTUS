@@ -229,7 +229,7 @@ shard01 [direct: primary] test> rs.conf()
     catchUpTakeoverDelayMillis: 30000,
     getLastErrorModes: {},
     getLastErrorDefaults: { w: 1, wtimeout: 0 },
-    replicaSetId: ObjectId('66f520b97dac445eb7166c0d')
+    replicaSetId: ObjectId('66fbe922f841a3a7dbf77617')
   }
 }
 ```
@@ -327,7 +327,7 @@ shard02 [direct: primary] test> rs.conf()
     catchUpTakeoverDelayMillis: 30000,
     getLastErrorModes: {},
     getLastErrorDefaults: { w: 1, wtimeout: 0 },
-    replicaSetId: ObjectId('66f52c9ec1565b3024b0e31e')
+    replicaSetId: ObjectId('66fbe9b16409640653c55bb4')
   }
 }
 ```
@@ -425,7 +425,7 @@ shard03 [direct: primary] test> rs.conf()
     catchUpTakeoverDelayMillis: 30000,
     getLastErrorModes: {},
     getLastErrorDefaults: { w: 1, wtimeout: 0 },
-    replicaSetId: ObjectId('66f52f03e3fe0c9e81d1dc86')
+    replicaSetId: ObjectId('66fbe9ec05c2775d0b25c10c')
   }
 }
 ```
@@ -522,11 +522,11 @@ sh.addShard("shard03/lab10:27017,lab11:27017,lab12:27017")
 }
 ```
 
-7. ПРоверяю состояние шардирования:
+7. Проверяю состояние шардирования:
 ```
 [direct: mongos] test> sh.status()
 shardingVersion
-{ _id: 1, clusterId: ObjectId('66f2c19dd826ffeff5a2d6f5') }
+{ _id: 1, clusterId: ObjectId('66fbe8e1a2cb1faac3912abb') }
 ---
 shards
 [
@@ -534,19 +534,19 @@ shards
     _id: 'shard01',
     host: 'shard01/lab4:27017,lab5:27017,lab6:27017',
     state: 1,
-    topologyTime: Timestamp({ t: 1727349890, i: 1 })
+    topologyTime: Timestamp({ t: 1727785599, i: 2 })
   },
   {
     _id: 'shard02',
     host: 'shard02/lab7:27017,lab8:27017,lab9:27017',
     state: 1,
-    topologyTime: Timestamp({ t: 1727349931, i: 1 })
+    topologyTime: Timestamp({ t: 1727785609, i: 2 })
   },
   {
     _id: 'shard03',
     host: 'shard03/lab10:27017,lab11:27017,lab12:27017',
     state: 1,
-    topologyTime: Timestamp({ t: 1727351093, i: 2 })
+    topologyTime: Timestamp({ t: 1727785618, i: 2 })
   }
 ]
 ---
@@ -558,10 +558,10 @@ autosplit
 ---
 balancer
 {
-  'Currently enabled': 'yes',
-  'Failed balancer rounds in last 5 attempts': 0,
   'Currently running': 'no',
-  'Migration Results for the last 24 hours': 'No recent migrations'
+  'Failed balancer rounds in last 5 attempts': 0,
+  'Currently enabled': 'yes',
+  'Migration Results for the last 24 hours': { '6': 'Success' }
 }
 ---
 databases
@@ -576,6 +576,40 @@ databases
         chunkMetadata: [ { shard: 'shard01', nChunks: 1 } ],
         chunks: [
           { min: { _id: MinKey() }, max: { _id: MaxKey() }, 'on shard': 'shard01', 'last modified': Timestamp({ t: 1, i: 0 }) }
+        ],
+        tags: []
+      }
+    }
+  },
+  {
+    database: {
+      _id: 'test',
+      primary: 'shard03',
+      partitioned: false,
+      version: {
+        uuid: UUID('220c16b2-74cb-4abb-ba5a-01626b40b7fe'),
+        timestamp: Timestamp({ t: 1727786816, i: 1 }),
+        lastMod: 1
+      }
+    },
+    collections: {
+      'test.operations': {
+        shardKey: { operID: 'hashed' },
+        unique: false,
+        balancing: true,
+        chunkMetadata: [
+          { shard: 'shard01', nChunks: 3 },
+          { shard: 'shard02', nChunks: 3 },
+          { shard: 'shard03', nChunks: 1 }
+        ],
+        chunks: [
+          { min: { operID: MinKey() }, max: { operID: Long('-7534273545435840395') }, 'on shard': 'shard01', 'last modified': Timestamp({ t: 2, i: 0 }) },
+          { min: { operID: Long('-7534273545435840395') }, max: { operID: Long('-5826499898353586714') }, 'on shard': 'shard02', 'last modified': Timestamp({ t: 3, i: 0 }) },
+          { min: { operID: Long('-5826499898353586714') }, max: { operID: Long('-4117478068408228158') }, 'on shard': 'shard02', 'last modified': Timestamp({ t: 4, i: 0 }) },
+          { min: { operID: Long('-4117478068408228158') }, max: { operID: Long('-2389961041160875228') }, 'on shard': 'shard01', 'last modified': Timestamp({ t: 5, i: 0 }) },
+          { min: { operID: Long('-2389961041160875228') }, max: { operID: Long('-677797532829821895') }, 'on shard': 'shard02', 'last modified': Timestamp({ t: 6, i: 0 }) },
+          { min: { operID: Long('-677797532829821895') }, max: { operID: Long('1067187518823003971') }, 'on shard': 'shard01', 'last modified': Timestamp({ t: 7, i: 0 }) },
+          { min: { operID: Long('1067187518823003971') }, max: { operID: MaxKey() }, 'on shard': 'shard03', 'last modified': Timestamp({ t: 7, i: 1 }) }
         ],
         tags: []
       }
