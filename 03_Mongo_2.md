@@ -936,7 +936,60 @@ shard01 [direct: primary] test> rs.status()
 2024-10-02T15:41:02.976+0300    100 document(s) imported successfully. 0 document(s) failed to import.
 ```
 
-3. Останавливаю сервис mongod на втором узле первого шарда, кторый находится в роли primary. Оставшийся третий узел отсался в роли secondary:
+3. ПРоверяю, что данные распределились по шардам:
+```
+[direct: mongos] test> db.operations.getShardDistribution()
+Shard shard01 at shard01/lab4:27017,lab5:27017,lab6:27017
+{
+  data: '3.01MiB',
+  docs: 28138,
+  chunks: 2,
+  'estimated data per chunk': '1.5MiB',
+  'estimated docs per chunk': 14069
+}
+---
+Shard shard03 at shard03/lab10:27017,lab11:27017,lab12:27017
+{
+  data: '4.7MiB',
+  docs: 43936,
+  chunks: 1,
+  'estimated data per chunk': '4.7MiB',
+  'estimated docs per chunk': 43936
+}
+---
+Shard shard02 at shard02/lab7:27017,lab8:27017,lab9:27017
+{
+  data: '3.01MiB',
+  docs: 28126,
+  chunks: 2,
+  'estimated data per chunk': '1.5MiB',
+  'estimated docs per chunk': 14063
+}
+---
+Totals
+{
+  data: '10.73MiB',
+  docs: 100200,
+  chunks: 5,
+  'Shard shard01': [
+    '28.08 % data',
+    '28.08 % docs in cluster',
+    '112B avg obj size on shard'
+  ],
+  'Shard shard03': [
+    '43.84 % data',
+    '43.84 % docs in cluster',
+    '112B avg obj size on shard'
+  ],
+  'Shard shard02': [
+    '28.07 % data',
+    '28.06 % docs in cluster',
+    '112B avg obj size on shard'
+  ]
+}
+```
+
+4. Останавливаю сервис mongod на втором узле первого шарда, кторый находится в роли primary. Оставшийся третий узел отсался в роли secondary:
 ```
 shard01 [direct: secondary] test> rs.status()
 {
@@ -1050,13 +1103,13 @@ shard01 [direct: secondary] test> rs.status()
 }
 ```
 
-4. Команда просмотра распределения коллекции по шардам выдаёт ошибку:
+5. Команда просмотра распределения коллекции по шардам выдаёт ошибку:
 ```
 [direct: mongos] test> db.operations.getShardDistribution()
 MongoServerError[FailedToSatisfyReadPreference]: Could not find host matching read preference { mode: "primary" } for set shard01
 ```
 
-5. При загрузке ещё 100 документов, 35 из них не загружается из-за недоступности 1-го шарда:
+6. При загрузке ещё 100 документов, 35 из них не загружается из-за недоступности 1-го шарда:
 ```
 [root@lab13 ~]# mongoimport --db=test --collection=operations --file=4.json
 2024-10-02T15:48:38.754+0300    connected to: mongodb://localhost/
@@ -1070,7 +1123,7 @@ MongoServerError[FailedToSatisfyReadPreference]: Could not find host matching re
 2024-10-02T15:48:53.756+0300    65 document(s) imported successfully. 35 document(s) failed to import.
 ```
 
-6. Запускаю остановленные ранее сервися mongod на 1 и 2 узлах. 3-й узел становится primary, а остальные secondary:
+7. Запускаю остановленные ранее сервися mongod на 1 и 2 узлах. 3-й узел становится primary, а остальные secondary:
 ```
 shard01 [direct: primary] test> rs.status()
 {
@@ -1199,7 +1252,7 @@ shard01 [direct: primary] test> rs.status()
 }
 ```
 
-7. Количество документов на 1-м шарде не изменилось, т.к. они не смогли загрузиться, а на 2-3 шардах докуменыт добавились:
+8. Количество документов на 1-м шарде не изменилось, т.к. они не смогли загрузиться, а на 2-3 шардах докуменыт добавились:
 ```
 [direct: mongos] test> db.operations.getShardDistribution()
 Shard shard03 at shard03/lab10:27017,lab11:27017,lab12:27017
@@ -1254,7 +1307,7 @@ Totals
 
 *ВЫВОД: для отказоусточивости, в каждой replica set должно быть не менее 3-х узлов.
 
-8. Останавливаю сервис mongod на первом узле второго шарда, кторый находится в роли primary. Primary становится второй узел:
+9. Останавливаю сервис mongod на первом узле второго шарда, кторый находится в роли primary. Primary становится второй узел:
 ```
 shard02 [direct: primary] test> rs.status()
 {
@@ -1384,7 +1437,7 @@ shard02 [direct: primary] test> rs.status()
 }
 ```
 
-9. Запускаю сервис mongod на 1-м узле 2-го шарда. Он, в соответствии с заданными приоритетами, опять становится primary:
+10. Запускаю сервис mongod на 1-м узле 2-го шарда. Он, в соответствии с заданными приоритетами, опять становится primary:
 ```
 shard02 [direct: primary] test> rs.status()
 {
