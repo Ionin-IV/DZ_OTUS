@@ -936,7 +936,7 @@ shard01 [direct: primary] test> rs.status()
 2024-10-02T15:41:02.976+0300    100 document(s) imported successfully. 0 document(s) failed to import.
 ```
 
-3. ПРоверяю, что данные распределились по шардам:
+3. Проверяю, что данные распределились по шардам:
 ```
 [direct: mongos] test> db.operations.getShardDistribution()
 Shard shard01 at shard01/lab4:27017,lab5:27017,lab6:27017
