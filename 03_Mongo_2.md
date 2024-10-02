@@ -652,4 +652,149 @@ databases
    mongoimport --db=test --collection=operations --file=1.json
    ```
 
-### Шардирование таблицы
+### Шардирование коллекции
+
+1. Создаю хэшированный индекс по полю operID:
+```
+[direct: mongos] test> db.operations.createIndex( { "operID" : "hashed" } )
+operID_hashed
+```
+
+2. Шардирую коллекцию:
+```
+[direct: mongos] test> use admin
+switched to db admin
+[direct: mongos] admin> sh.shardCollection( "test.operations", { "operID" : "hashed" } )
+{
+  collectionsharded: 'test.operations',
+  ok: 1,
+  '$clusterTime': {
+    clusterTime: Timestamp({ t: 1727860161, i: 31 }),
+    signature: {
+      hash: Binary.createFromBase64('AAAAAAAAAAAAAAAAAAAAAAAAAAA=', 0),
+      keyId: Long('0')
+    }
+  },
+  operationTime: Timestamp({ t: 1727860161, i: 31 })
+}
+```
+
+3. Т.к. таблица небольшая, то то уменьшаю размер chunk до 1Мб, чтобы запустилась балансировка:
+```
+[direct: mongos] admin> use config
+switched to db config
+db.settings.updateOne( { _id: "chunksize" }, { $set: { _id: "chunksize", value: 1 } }, { upsert: true } )
+```
+
+4. Через некоторое время проверяю, что таблица распределилась по шардам:
+```
+[direct: mongos] config> use test
+switched to db test
+[direct: mongos] test> db.operations.getShardDistribution()
+Shard shard01 at shard01/lab4:27017,lab5:27017,lab6:27017
+{
+  data: '3MiB',
+  docs: 28083,
+  chunks: 3,
+  'estimated data per chunk': '1MiB',
+  'estimated docs per chunk': 9361
+}
+---
+Shard shard02 at shard02/lab7:27017,lab8:27017,lab9:27017
+{
+  data: '3MiB',
+  docs: 28083,
+  chunks: 3,
+  'estimated data per chunk': '1MiB',
+  'estimated docs per chunk': 9361
+}
+---
+Shard shard03 at shard03/lab10:27017,lab11:27017,lab12:27017
+{
+  data: '4.69MiB',
+  docs: 43834,
+  chunks: 1,
+  'estimated data per chunk': '4.69MiB',
+  'estimated docs per chunk': 43834
+}
+---
+Totals
+{
+  data: '10.71MiB',
+  docs: 100000,
+  chunks: 7,
+  'Shard shard01': [
+    '28.08 % data',
+    '28.08 % docs in cluster',
+    '112B avg obj size on shard'
+  ],
+  'Shard shard02': [
+    '28.08 % data',
+    '28.08 % docs in cluster',
+    '112B avg obj size on shard'
+  ],
+  'Shard shard03': [
+    '43.83 % data',
+    '43.83 % docs in cluster',
+    '112B avg obj size on shard'
+  ]
+}
+```
+
+5. Загружаю в коллекцию ещё 100 документов (методом, описанным чуть выше).
+
+6. Проверяю, что документы распределились по шардам:
+```
+[direct: mongos] test> db.operations.getShardDistribution()
+Shard shard01 at shard01/lab4:27017,lab5:27017,lab6:27017
+{
+  data: '3.01MiB',
+  docs: 28110,
+  chunks: 3,
+  'estimated data per chunk': '1MiB',
+  'estimated docs per chunk': 9370
+}
+---
+Shard shard02 at shard02/lab7:27017,lab8:27017,lab9:27017
+{
+  data: '3.01MiB',
+  docs: 28107,
+  chunks: 2,
+  'estimated data per chunk': '1.5MiB',
+  'estimated docs per chunk': 14053
+}
+---
+Shard shard03 at shard03/lab10:27017,lab11:27017,lab12:27017
+{
+  data: '4.7MiB',
+  docs: 43885,
+  chunks: 1,
+  'estimated data per chunk': '4.7MiB',
+  'estimated docs per chunk': 43885
+}
+---
+Totals
+{
+  data: '10.72MiB',
+  docs: 100102,
+  chunks: 6,
+  'Shard shard01': [
+    '28.08 % data',
+    '28.08 % docs in cluster',
+    '112B avg obj size on shard'
+  ],
+  'Shard shard02': [
+    '28.08 % data',
+    '28.07 % docs in cluster',
+    '112B avg obj size on shard'
+  ],
+  'Shard shard03': [
+    '43.83 % data',
+    '43.84 % docs in cluster',
+    '112B avg obj size on shard'
+  ]
+}
+```
+
+### Проверка отработки отказов кластером
+
