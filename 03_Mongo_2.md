@@ -746,54 +746,55 @@ Totals
 6. Проверяю, что документы распределились по шардам:
 ```
 [direct: mongos] test> db.operations.getShardDistribution()
+Shard shard03 at shard03/lab10:27017,lab11:27017,lab12:27017
+{
+  data: '4.7MiB',
+  docs: 43883,
+  chunks: 1,
+  'estimated data per chunk': '4.7MiB',
+  'estimated docs per chunk': 43883
+}
+---
 Shard shard01 at shard01/lab4:27017,lab5:27017,lab6:27017
 {
   data: '3.01MiB',
-  docs: 28110,
-  chunks: 3,
-  'estimated data per chunk': '1MiB',
-  'estimated docs per chunk': 9370
+  docs: 28114,
+  chunks: 2,
+  'estimated data per chunk': '1.5MiB',
+  'estimated docs per chunk': 14057
 }
 ---
 Shard shard02 at shard02/lab7:27017,lab8:27017,lab9:27017
 {
-  data: '3.01MiB',
-  docs: 28107,
+  data: '3MiB',
+  docs: 28103,
   chunks: 2,
   'estimated data per chunk': '1.5MiB',
-  'estimated docs per chunk': 14053
-}
----
-Shard shard03 at shard03/lab10:27017,lab11:27017,lab12:27017
-{
-  data: '4.7MiB',
-  docs: 43885,
-  chunks: 1,
-  'estimated data per chunk': '4.7MiB',
-  'estimated docs per chunk': 43885
+  'estimated docs per chunk': 14051
 }
 ---
 Totals
 {
   data: '10.72MiB',
-  docs: 100102,
-  chunks: 6,
+  docs: 100100,
+  chunks: 5,
+  'Shard shard03': [
+    '43.83 % data',
+    '43.83 % docs in cluster',
+    '112B avg obj size on shard'
+  ],
   'Shard shard01': [
     '28.08 % data',
     '28.08 % docs in cluster',
     '112B avg obj size on shard'
   ],
   'Shard shard02': [
-    '28.08 % data',
+    '28.07 % data',
     '28.07 % docs in cluster',
-    '112B avg obj size on shard'
-  ],
-  'Shard shard03': [
-    '43.83 % data',
-    '43.84 % docs in cluster',
     '112B avg obj size on shard'
   ]
 }
+
 ```
 
 ### Проверка отработки отказов кластером
