@@ -1123,7 +1123,7 @@ MongoServerError[FailedToSatisfyReadPreference]: Could not find host matching re
 2024-10-02T15:48:53.756+0300    65 document(s) imported successfully. 35 document(s) failed to import.
 ```
 
-7. Запускаю остановленные ранее сервися mongod на 1 и 2 узлах. 3-й узел становится primary, а остальные secondary:
+7. Запускаю остановленные ранее сервисы mongod на 1 и 2 узлах. 3-й узел становится primary, а остальные secondary:
 ```
 shard01 [direct: primary] test> rs.status()
 {
