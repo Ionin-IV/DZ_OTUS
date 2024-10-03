@@ -1559,4 +1559,45 @@ shard02 [direct: primary] test> rs.status()
 
 **ВЫВОД: если нужна жёсткая привязка роли к узлам, то это можно сделать с помощью приоритетов.**
 
-### Работа с пользователями
+### Включение авторизации
+
+1. На одном из серверов генерирую ключ:
+```
+openssl rand -base64 756 > /etc/mongo_auth.key
+```
+
+2. Копирую ключ на остальные сервера.
+
+3. Редактирую права на ключ:
+```
+chown mongod: /etc/mongo_auth.key
+chmod 400 /etc/mongo_auth.key
+```
+
+4. Отключаю балансировку:
+```
+[direct: mongos] test> sh.stopBalancer()
+{
+  ok: 1,
+  '$clusterTime': {
+    clusterTime: Timestamp({ t: 1727943628, i: 4 }),
+    signature: {
+      hash: Binary.createFromBase64('AAAAAAAAAAAAAAAAAAAAAAAAAAA=', 0),
+      keyId: Long('0')
+    }
+  },
+  operationTime: Timestamp({ t: 1727943628, i: 4 })
+}
+```
+
+5. Останавливаю сервисы mongod/s на всех серверах.
+
+6. Добавляю в конфигурационные фалы параметры:
+```
+security:
+  keyFile: /etc/mongo_auth.key
+```
+
+7. Запускаю сервисы mongod/s на всех серверах.
+
+8. 
