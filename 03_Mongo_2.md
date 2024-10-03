@@ -1688,3 +1688,95 @@ Using Mongosh:          2.3.1
 
 ### Создание пользователей
 
+1. Подключаюсь под администратором пользователей:
+```
+[root@lab13 ~]# mongosh -u user_admin -p
+Enter password: *********
+Current Mongosh Log ID: 66fe66a63650649609964032
+Connecting to:          mongodb://<credentials>@127.0.0.1:27017/?directConnection=true&serverSelectionTimeoutMS=2000&appName=mongosh+2.3.1
+Using MongoDB:          7.0.14
+Using Mongosh:          2.3.1
+```
+
+2. Создаю пользователя test_rw с правами чтения/записи в БД test:
+```
+[direct: mongos] test> db.createUser(
+...   {
+...     user: "test_rw",
+...     pwd:  passwordPrompt(),
+...     roles: [ { role: "readWrite", db: "test" } ]
+...   }
+... )
+Enter password
+*******{
+  ok: 1,
+  '$clusterTime': {
+    clusterTime: Timestamp({ t: 1727946868, i: 2 }),
+    signature: {
+      hash: Binary.createFromBase64('u407XKZ7Tnbu5kUx3sadBpLkp/k=', 0),
+      keyId: Long('7420780864088309782')
+    }
+  },
+  operationTime: Timestamp({ t: 1727946868, i: 2 })
+}
+```
+
+3. Создаю пользователя test_ro с правами только чтения в БД test:
+```
+[direct: mongos] test> db.createUser(
+...   {
+...     user: "test_ro",
+...     pwd:  passwordPrompt(),
+...     roles: [ { role: "read", db: "test" } ]
+...   }
+... )
+Enter password
+*******{
+  ok: 1,
+  '$clusterTime': {
+    clusterTime: Timestamp({ t: 1727946898, i: 1 }),
+    signature: {
+      hash: Binary.createFromBase64('DCs0Ddey8QphctlFafBW0feD7vo=', 0),
+      keyId: Long('7420780864088309782')
+    }
+  },
+  operationTime: Timestamp({ t: 1727946898, i: 1 })
+}
+```
+
+### Тестирование прав созданных пользователей
+
+1. Подключаюсь под пользователем test_rw:
+```
+[root@lab13 ~]# mongosh -u test_rw -p --authenticationDatabase test
+Enter password: *******
+Current Mongosh Log ID: 66fe6142f06b279438964032
+Connecting to:          mongodb://<credentials>@127.0.0.1:27017/?directConnection=true&serverSelectionTimeoutMS=2000&authSource=test&appName=mongosh+2.3.1
+Using MongoDB:          7.0.14
+Using Mongosh:          2.3.1
+```
+
+2. Успешно вношу документ в коллекцию:
+```
+[direct: mongos] test> db.operations.insertOne( { operID: 100300, date: "2024-10-01 02:00:00", name: "Иван Иванов", operations: -1200 } )
+{
+  acknowledged: true,
+  insertedId: ObjectId('66fe61f4f06b279438964033')
+}
+```
+
+3. Подключаюсь под пользователем test_ro:
+```
+[root@lab13 ~]# mongosh -u test_ro -p --authenticationDatabase test
+Enter password: *******
+Current Mongosh Log ID: 66fe6214be32da06ef964032
+Connecting to:          mongodb://<credentials>@127.0.0.1:27017/?directConnection=true&serverSelectionTimeoutMS=2000&authSource=test&appName=mongosh+2.3.1
+Using MongoDB:          7.0.14
+Using Mongosh:          2.3.1
+```
+
+4. При попытке добавления документа, получаю ошибку нехватки прав:
+```
+[direct: mongos] test> db.operations.insertOne( { operID: 100301, date: "2024-10-01 02:10:00", name: "Пётр Петров", operations: 3700 } )
+MongoServerError[Unauthorized]: not authorized on test to execute command { insert: "operations", documents: [ { operID: 100301, date: "2024-10-01 02:10:00", name: "Пётр Петров", operations: 3700, _id: ObjectId('66fe625cbe32da06ef964033') } ], ordered: true, lsid: { id: UUID("9dedf46b-c617-4015-aaf0-778c040b3582") }, txnNumber: 1, $clusterTime: { clusterTime: Timestamp(1727947283, 1), signature: { hash: BinData(0, 2B1E7832C444BCD2E1412B58559857B1AEA759BF), keyId: 7420780864088309782 } }, $db: "test" }
+```
