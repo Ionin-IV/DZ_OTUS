@@ -1598,6 +1598,93 @@ security:
   keyFile: /etc/mongo_auth.key
 ```
 
-7. Запускаю сервисы mongod/s на всех серверах.
+7. Запускаю сервисы mongo на всех серверах.
 
-8. 
+8. Создаю администратора пользователей:
+```
+[direct: mongos] test> use admin
+switched to db admin
+[direct: mongos] admin> db.createUser(
+...   {
+...     user: "user_admin",
+...     pwd:  passwordPrompt(),
+...     roles: [ { role: "userAdminAnyDatabase", db: "admin" } ]
+...   }
+... )
+Enter password
+*********{
+  ok: 1,
+  '$clusterTime': {
+    clusterTime: Timestamp({ t: 1727945108, i: 4 }),
+    signature: {
+      hash: Binary.createFromBase64('6qH2qZ61xasWQzCvXfNp2sMR4uE=', 0),
+      keyId: Long('7420780864088309782')
+    }
+  },
+  operationTime: Timestamp({ t: 1727945108, i: 4 })
+}
+```
+
+9. Подключаюсь под созданным администратором пользователей:
+```
+[root@lab13 ~]# mongosh -u user_admin -p
+Enter password: *********
+Current Mongosh Log ID: 66fe59e229e43202aa964032
+Connecting to:          mongodb://<credentials>@127.0.0.1:27017/?directConnection=true&serverSelectionTimeoutMS=2000&appName=mongosh+2.3.1
+Using MongoDB:          7.0.14
+Using Mongosh:          2.3.1
+```
+
+10. Создаю администратора кластера:
+```
+[direct: mongos] test> use admin
+switched to db admin
+[direct: mongos] admin> db.createUser(
+...   {
+...     "user" : "cluster_admin",
+...     "pwd" : passwordPrompt(),
+...     roles: [ { "role" : "clusterAdmin", "db" : "admin" } ]
+...   }
+... )
+Enter password
+*********{
+  ok: 1,
+  '$clusterTime': {
+    clusterTime: Timestamp({ t: 1727945296, i: 1 }),
+    signature: {
+      hash: Binary.createFromBase64('LkOwD4F4JlqFrwfGZlr1aHadwQY=', 0),
+      keyId: Long('7420780864088309782')
+    }
+  },
+  operationTime: Timestamp({ t: 1727945296, i: 1 })
+}
+```
+
+11. Подключаюсь под администраторм кластера:
+```
+[root@lab13 ~]# mongosh -u cluster_admin -p
+Enter password: *********
+Current Mongosh Log ID: 66fe5a9f9378a97bf8964032
+Connecting to:          mongodb://<credentials>@127.0.0.1:27017/?directConnection=true&serverSelectionTimeoutMS=2000&appName=mongosh+2.3.1
+Using MongoDB:          7.0.14
+Using Mongosh:          2.3.1
+```
+
+12. Включаю выключенную ранее балансировку:
+```
+[direct: mongos] test> sh.startBalancer()
+{
+  ok: 1,
+  '$clusterTime': {
+    clusterTime: Timestamp({ t: 1727945440, i: 4 }),
+    signature: {
+      hash: Binary.createFromBase64('mriIqpKNcUFYKYiyFLy/bRlCM3I=', 0),
+      keyId: Long('7420780864088309782')
+    }
+  },
+  operationTime: Timestamp({ t: 1727945440, i: 4 })
+}
+```
+
+### Создание пользователей
+
