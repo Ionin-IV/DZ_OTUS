@@ -686,7 +686,7 @@ switched to db config
 db.settings.updateOne( { _id: "chunksize" }, { $set: { _id: "chunksize", value: 1 } }, { upsert: true } )
 ```
 
-4. Через некоторое время проверяю, что таблица распределилась по шардам:
+4. Через некоторое время проверяю, что коллекция распределилась по шардам:
 ```
 [direct: mongos] config> use test
 switched to db test
