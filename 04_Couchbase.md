@@ -65,3 +65,38 @@ yum install couchbase-server-community
 10. Таким же образом добавляю третий сервер и ребалансирую кластер. Кластер готов к работе:
 
 ![alt text](./04_Couchbase/10.jpg)
+
+### Создание Bucket, Scope и Collection
+
+1. Перехожу в закладку "Buckets" и нажимаю "Add Bucket":
+
+![alt text](./04_Couchbase/11.jpg)
+
+2. Ввожу имя test, выбираю количество реплик 2 (остальные параметры оставляю по умолчанию), и нажимаю "Add Bucket":
+
+![alt text](./04_Couchbase/12.jpg)
+
+3. Bucket test создан. Нажимаю в нём "Scopes & Collections":
+
+![alt text](./04_Couchbase/15.jpg)
+
+4. Создаю scope, нажав "Add Scope":
+
+![alt text](./04_Couchbase/16.jpg)
+
+5. Выбираю bucket, ввожу название scope, и создаю его, нажав "Save":
+
+![alt text](./04_Couchbase/17.jpg)
+
+6. Новый scope создан. Нажимаю "Add Collection" в нём:
+
+![alt text](./04_Couchbase/18.jpg)
+
+7. Задаю имя коллекции и нажимаю "Save":
+
+![alt text](./04_Couchbase/19.jpg)
+
+8. Коллекция operation добавлена:
+
+![alt text](./04_Couchbase/20.jpg)
+
