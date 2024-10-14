@@ -104,3 +104,85 @@ yum install couchbase-server-community
 
 
 ### Наполнение коллекции данными
+
+В коллекции opaeration будут приходы/расходы денежных средств со следующими полями:
+* operID - ID операции
+* date - дата операции
+* name - имя и фамилия
+* operation - приход/расход денежных средств (положительное число - приход, отрицательное - расход)
+
+1. Создаю нижеследующий скрипт (bash linux), генерирующий данные в json-файл для загрузки в БД:
+```
+#!/bin/sh
+
+NAMES=("Иван Иванов" "Пётр Петров" "Сидор Сидоров")  # массив с именами и фамилиями
+
+for (( i=1; i <= 100000; i++ ))  # цикл с 100000 повторений
+do
+     NM=`tr -dc 0-2 </dev/urandom | head -c 1`  # генерация слуйчайного идентификатора в массиве имён и фамилий
+     DT=`date +"%F %H:%M:00" --date="$i minutes ago"`  # генерация даты мотодом вычитания из текущей даты/времени минут, равных счётчику цикла
+     OPER=`tr -dc 1-9 </dev/urandom | head -c 4`  # генерация случаной суммы операции
+     OPER_1=`tr -dc 1-2 </dev/urandom | head -c 1`  # генерация знака операции (1 - положительный, 2 - отрицательный)
+     if [[ $OPER_1 == "2" ]]  # добавление знака минус в операцию, в случае сгенерированного отрицательного знака
+     then
+             OPER="-$OPER"
+     fi
+     echo { \"operID\": \"$i\", \"date\": \"$DT\", \"\name\": \"${NAMES[$NM]}\", \"operation\": { \"\$numberInt\": \"$OPER\"} } >> /root/operation.json  # запись строки данных в json-файл
+done
+```
+
+2. Загружаю данные из сгенерированного json-файла в коллекцию operation командой:
+```
+[root@lab1 ~]# /opt/couchbase/bin/cbimport json -c couchbase://192.168.1.21 -u Administrator -p -b test -f lines -d file:///root/operation.json --scope-collection-exp test_scope.operation -g key::%operID%::#MONO_INCR#
+Password for -p:
+JSON `/root/operation.json` imported to `couchbase://192.168.1.21` successfully
+Documents imported: 100000 Documents failed: 0
+```
+
+3. Данные появились в коллекции operation:
+
+![alt text](./04_Couchbase/21.jpg)
+
+
+### Проверка отказоустойчивости
+
+1. Останавливаю сервис couchbase на третьем узле:
+```
+systemctl stop couchbase-server
+```
+
+2. Сервер в кластере становится недоступным. Нажимаю "Failover":
+
+![alt text](./04_Couchbase/22.jpg)
+
+3. Подтверждаю вывод сбойного сервера из кдастера:
+
+![alt text](./04_Couchbase/23.jpg)
+
+4. Нажимаю "Rebalance" для завершения процесса:
+
+![alt text](./04_Couchbase/24.jpg)
+
+5. Сбойный сервер выведен из калстера:
+
+![alt text](./04_Couchbase/25.jpg)
+
+6. Проверяю, что все данные доступны (100000 загруженных строк считаются count-ом):
+
+![alt text](./04_Couchbase/26.jpg)
+
+7. Запускаю на третьем узле сервис couchbase-server и добавляю сервер в кластер:
+
+![alt text](./04_Couchbase/27.jpg)
+
+8. Сервер добавлен, но требудется ребалансировка, для чего нажимю "Rebalance":
+
+![alt text](./04_Couchbase/28.jpg)
+
+9. Сервер добавлен и находится в рабочем состоянии:
+
+![alt text](./04_Couchbase/29.jpg)
+
+10. Проверяю доспность данных запросом:
+
+![alt text](./04_Couchbase/30.jpg)
