@@ -26,6 +26,7 @@ yum install ./couchbase-release-1.0.noarch.rpm
 yum install couchbase-server-community
 ```
 
+
 ### Создание кластера
 
 1. Захожу на первый сервер по адресу http://192.168.1.21:8091
@@ -66,6 +67,7 @@ yum install couchbase-server-community
 
 ![alt text](./04_Couchbase/10.jpg)
 
+
 ### Создание Bucket, Scope и Collection
 
 1. Перехожу в закладку "Buckets" и нажимаю "Add Bucket":
@@ -100,3 +102,5 @@ yum install couchbase-server-community
 
 ![alt text](./04_Couchbase/20.jpg)
 
+
+### Наполнение коллекции данными
