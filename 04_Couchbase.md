@@ -35,7 +35,7 @@ yum install couchbase-server-community
 
 ![alt text](./04_Couchbase/01.jpg)
 
-3. Ввожу имя кластера, пользователя и его пароль:
+3. Ввожу название кластера, имя пользователя-администратора и его пароль:
 
 ![alt text](./04_Couchbase/02.jpg)
 
