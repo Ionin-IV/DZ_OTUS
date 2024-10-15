@@ -15,17 +15,19 @@
 
 ### Установка Cassandra и настройка кластера
 
-1. Устанавливаю требуемую версию JDK:
+1. Создаю три ВМ в конфигурации: 2 ядра процессора, 2 Гб памяти, 15 Гб жесткий диск, ОС CentOS 7.9
+
+2. Устанавливаю требуемую версию JDK:
 ```
 yum install java-11-openjdk
 ```
 
-2. Устанавливаю заранее загруженные пакеты установки:
+3. Устанавливаю заранее загруженные пакеты установки:
 ```
 yum install cassandra-4.0.6-1.noarch.rpm  cassandra-tools-4.0.6-1.noarch.rpm
 ```
 
-3. В файле конфигурации /etc/cassandra//conf/cassandra.yaml выставляю настройки кластера :
+4. В файле конфигурации /etc/cassandra//conf/cassandra.yaml выставляю настройки кластера :
 ```
 cluster_name: 'Test Cluster'
     - class_name: org.apache.cassandra.locator.SimpleSeedProvider
@@ -33,13 +35,13 @@ cluster_name: 'Test Cluster'
 listen_address: 192.168.1.2* # IP-адрес на каждом узле свой
 ```
 
-4. Включаю и запускаю сервис cassandra:
+5. Включаю и запускаю сервис cassandra:
 ```
 systemctl enable cassandra
 systemctl start cassandra
 ```
 
-5. Проверяю, что кластер запустился и готов к работе:
+6. Проверяю, что кластер запустился и готов к работе:
 ```
 [root@lab1 ~]# nodetool status
 Datacenter: datacenter1
