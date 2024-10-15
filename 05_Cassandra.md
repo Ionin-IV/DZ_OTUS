@@ -93,18 +93,63 @@ with clustering order by (operID); -- clustering key по ID операции
 ```
 #!/bin/sh
 
-NAMES=("Иван Иванов" "Пётр Петров" "Сидор Сидоров")
+NAMES=("Иван Иванов" "Пётр Петров" "Сидор Сидоров")  # массив с именами и фамилиями
 
-for (( i=1; i <= 10000; i++ ))
+for (( i=1; i <= 10000; i++ ))  # цикл с 10000 повторений
 do
-        NM=`tr -dc 0-2 </dev/urandom | head -c 1`
-        DT=`date +"%F %H:%M:00" --date="$i minutes ago"`
-        OPER=`tr -dc 1-9 </dev/urandom | head -c 4`
-        OPER_1=`tr -dc 1-2 </dev/urandom | head -c 1`
-        if [[ $OPER_1 == "2" ]]
+        NM=`tr -dc 0-2 </dev/urandom | head -c 1`  # генерация слуйчайного идентификатора в массиве имён и фамилий
+        DT=`date +"%F %H:%M:00" --date="$i minutes ago"`  # генерация даты мотодом вычитания из текущей даты/времени минут, равных счётчику цикла
+        OPER=`tr -dc 1-9 </dev/urandom | head -c 4`  # генерация случаной суммы операции
+        OPER_1=`tr -dc 1-2 </dev/urandom | head -c 1`  # генерация знака операции (1 - положительный, 2 - отрицательный)
+        if [[ $OPER_1 == "2" ]]  # добавление знака минус в операцию, в случае сгенерированного отрицательного знака
         then
                 OPER="-$OPER"
         fi
-        echo ${NAMES[$NM]},$DT,$OPER,$i >> operations_ru.csv
+        echo ${NAMES[$NM]},$DT,$OPER,$i >> operations_ru.csv  # запись строки данных в csv-файл
 done
 ```
+
+2. Загружаю данные в таблицу operations_ru:
+```
+cqlsh:test_keyspace> copy test_keyspace.operations_ru from '/root/operations_ru.csv' with delimiter = ',' and header = false;
+Using 1 child processes
+
+Starting copy of test_keyspace.operations_ru with columns [name, operdt, oper, operid].
+Processed: 10000 rows; Rate:    5794 rows/s; Avg. rate:    9588 rows/s
+10000 rows imported from 1 files in 0 day, 0 hour, 0 minute, and 1.043 seconds (0 skipped).
+```
+
+3. Создаю csv-файл operations_en.csv с данными для таблицы операций прихода-расхода денежных стредств по нашим пользователям, запустив скрипт:
+```
+#!/bin/sh
+
+NAMES=("John Smith" "Fred Johnson" "Mike Jones")  # массив с именами и фамилиями
+
+for (( i=1; i <= 10000; i++ ))  # цикл с 10000 повторений
+do
+        NM=`tr -dc 0-2 </dev/urandom | head -c 1`  # генерация слуйчайного идентификатора в массиве имён и фамилий
+        DT=`date +"%F %H:%M:00" --date="$i minutes ago"`  # генерация даты мотодом вычитания из текущей даты/времени минут, равных счётчику цикла
+        OPER=`tr -dc 1-9 </dev/urandom | head -c 4`  # генерация случаной суммы операции
+        OPER_1=`tr -dc 1-2 </dev/urandom | head -c 1`  # генерация знака операции (1 - положительный, 2 - отрицательный)
+        if [[ $OPER_1 == "2" ]]  # добавление знака минус в операцию, в случае сгенерированного отрицательного знака
+        then
+                OPER="-$OPER"
+        fi
+        echo ${NAMES[$NM]},$DT,$OPER,$i >> operations_en.csv  # запись строки данных в csv-файл
+done
+```
+
+4. Загружаю данные в таблицу operations_en:
+```
+cqlsh:test_keyspace> copy test_keyspace.operations_en from '/root/operations_en.csv' with delimiter = ',' and header = false;
+Using 1 child processes
+
+Starting copy of test_keyspace.operations_en with columns [name, operid, oper, operdt].
+Processed: 10000 rows; Rate:    7929 rows/s; Avg. rate:   12985 rows/s
+10000 rows imported from 1 files in 0.770 seconds (0 skipped).
+```
+
+
+### Выполнение запросов к созданным таблицам
+
+1. 
