@@ -56,3 +56,55 @@ UN  192.168.1.21  69.05 KiB  16      66.9%             d8e2a3d1-4527-4892-a898-e
 
 
 ### Создание keyspace и таблиц
+
+1. Создаю keyspace:
+```
+create keyspace test_keyspace with replication = { 'class' : 'SimpleStrategy', 'replication_factor' : 1};
+```
+
+2. Создаю таблицу операций прихода-расхода денежных стредств по нашим пользователям:
+```
+create table test_keyspace.operations_ru (
+name varchar, -- имя пользователя
+operDT timestamp, -- дата/время операции
+oper int, -- приход/расход
+operID int, -- ID операции
+primary key (name, operDT) -- составной partition key по имени пользователя и дате/времени операции
+)
+with clustering order by (operDT asc); -- clustering key по дате/времени операции
+```
+
+3. Создаю таблицу операций прихода-расхода денежных стредств по иностранным пользователям:
+```
+create table test_keyspace.operations_en (
+name varchar, -- имя пользователя
+operID int, -- ID операции
+oper int, -- приход/расход
+operDT timestamp, -- дата/время операции
+primary key (name, operID) -- составной partition key по имени пользователя и ID операции
+)
+with clustering order by (operID); -- clustering key по ID операции
+```
+
+
+### Наполнение таблиц данными
+
+1. Создаю csv-файл operations_ru.csv с данными для таблицы операций прихода-расхода денежных стредств по нашим пользователям, запустив скрипт:
+```
+#!/bin/sh
+
+NAMES=("Иван Иванов" "Пётр Петров" "Сидор Сидоров")
+
+for (( i=1; i <= 10000; i++ ))
+do
+        NM=`tr -dc 0-2 </dev/urandom | head -c 1`
+        DT=`date +"%F %H:%M:00" --date="$i minutes ago"`
+        OPER=`tr -dc 1-9 </dev/urandom | head -c 4`
+        OPER_1=`tr -dc 1-2 </dev/urandom | head -c 1`
+        if [[ $OPER_1 == "2" ]]
+        then
+                OPER="-$OPER"
+        fi
+        echo ${NAMES[$NM]},$DT,$OPER,$i >> operations_ru.csv
+done
+```
