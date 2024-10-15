@@ -206,7 +206,7 @@ cqlsh:test_keyspace> select name, operDT + 3h, oper from operations_ru
 (15 rows)
 ```
 
-3. Вывожу операции пользователя John Smith с operID с0 100 до 150:
+3. Вывожу операции пользователя John Smith с operID со 100 до 150:
 ```
 cqlsh:test_keyspace> select name, operID, oper from operations_en
                  ... where name = 'John Smith'
