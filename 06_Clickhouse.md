@@ -12,10 +12,10 @@
 ## Выполнение задания:
 
 Планирую настроить кластер Clickhouse в следующей конфигурации:
-- сервер lab1 - shard 1/replica 1
-- сервер lab2 - shard 1/replica 2 + 1-й узел Clickhouse Keeper
-- сервер lab3 - shard 2/replica 1 + 2-й узел Clickhouse Keeper
-- сервер lab4 - shard 2/replica 2 + 3-й узел Clickhouse Keeper
+- сервер lab1: shard 1/replica 1 + 1-й узел Clickhouse Keeper
+- сервер lab2: shard 1/replica 2 + 2-й узел Clickhouse Keeper
+- сервер lab3: shard 2/replica 1 + 3-й узел Clickhouse Keeper
+- сервер lab4: shard 2/replica 2 + 4-й узел Clickhouse Keeper
 
 ### Установка и настройка Clickhouse
 
