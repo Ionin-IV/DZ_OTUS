@@ -124,7 +124,7 @@ systemctl start clickhouse-server
 
 </clickhouse>
 ```
-ПРИМЕЧАНИЕ: параметр server_id на каждом сервере указывается свой, в соответсвии с прописанным id в raft_configuration.
+ПРИМЕЧАНИЕ: параметр __server_id__ на каждом сервере указывается свой, в соответсвии с прописанным __id__ в __raft_configuration__.
 
 3. Добавляю настройку макроса для создания таблиц в файл конфигурации /etc/clickhouse-server/config.d/macros.xml со следующим содержимым (для первого узла):
 ```
@@ -137,7 +137,7 @@ systemctl start clickhouse-server
 
 </clickhouse>
 ```
-ПРИМЕЧАНИЕ: настройки shard и replica на каждом сервере свои, в соответсвии с прописанной в remote_servers ролью.
+ПРИМЕЧАНИЕ: настройки __shard__ и __replica__ на каждом сервере свои, в соответсвии с прописанной в __remote_servers__ ролью.
 
 4. Перезапускаю сервис Clickhouse:
 ```
