@@ -278,3 +278,380 @@ Ok.
 Peak memory usage: 35.27 MiB.
 ```
 
+### Создание БД и распределённой таблицы, и заполнение её данными
+
+1. Создаю БД test_dist на всём кластере одной командой:
+```
+CREATE DATABASE test_dist ON CLUSTER test_cluster;
+
+lab1 :) CREATE DATABASE test_dist ON CLUSTER test_cluster;
+
+CREATE DATABASE test_dist ON CLUSTER test_cluster
+
+Query id: 6761a793-49f4-450b-986c-6b725c6a971f
+
+   ┌─host─┬─port─┬─status─┬─error─┬─num_hosts_remaining─┬─num_hosts_active─┐
+1. │ lab2 │ 9000 │      0 │       │                   3 │                0 │
+2. │ lab1 │ 9000 │      0 │       │                   2 │                0 │
+3. │ lab4 │ 9000 │      0 │       │                   1 │                0 │
+4. │ lab3 │ 9000 │      0 │       │                   0 │                0 │
+   └──────┴──────┴────────┴───────┴─────────────────────┴──────────────────┘
+
+4 rows in set. Elapsed: 0.067 sec.
+```
+
+2. Создаю локальные таблицы test_dist.operations_local на всём кластере однйо командой:
+```
+lab1 :) CREATE TABLE test_dist.operations_local ON CLUSTER test_cluster
+(
+oper_id Int32,
+oper_dt DateTime,
+oper_name String,
+oper Int16
+)
+ENGINE = ReplicatedMergeTree('/test_cluster/tables/{shard}/operations_local','{replica}')
+PARTITION BY toYYYYMM(oper_dt)
+ORDER BY (oper_id, oper_dt);
+
+CREATE TABLE test_dist.operations_local ON CLUSTER test_cluster
+(
+    `oper_id` Int32,
+    `oper_dt` DateTime,
+    `oper_name` String,
+    `oper` Int16
+)
+ENGINE = ReplicatedMergeTree('/test_cluster/tables/{shard}/operations_local', '{replica}')
+PARTITION BY toYYYYMM(oper_dt)
+ORDER BY (oper_id, oper_dt)
+
+Query id: bdc39839-9161-4c3b-b58c-cd4397c11c75
+
+   ┌─host─┬─port─┬─status─┬─error─┬─num_hosts_remaining─┬─num_hosts_active─┐
+1. │ lab2 │ 9000 │      0 │       │                   3 │                1 │
+2. │ lab4 │ 9000 │      0 │       │                   2 │                1 │
+3. │ lab1 │ 9000 │      0 │       │                   1 │                1 │
+   └──────┴──────┴────────┴───────┴─────────────────────┴──────────────────┘
+   ┌─host─┬─port─┬─status─┬─error─┬─num_hosts_remaining─┬─num_hosts_active─┐
+4. │ lab3 │ 9000 │      0 │       │                   0 │                0 │
+   └──────┴──────┴────────┴───────┴─────────────────────┴──────────────────┘
+
+4 rows in set. Elapsed: 0.589 sec.
+```
+
+3. Создаю распределнноую таблицу test_dist.operations_dist:
+```
+lab1 :) CREATE TABLE test_dist.operations_dist ON CLUSTER test_cluster AS test_dist.operations_local
+ENGINE = Distributed(test_cluster, test_dist, operations_local, rand());
+
+CREATE TABLE test_dist.operations_dist ON CLUSTER test_cluster AS test_dist.operations_local
+ENGINE = Distributed(test_cluster, test_dist, operations_local, rand())
+
+Query id: 08f07aed-b7d0-4a7d-82c2-c4a83706d93b
+
+   ┌─host─┬─port─┬─status─┬─error─┬─num_hosts_remaining─┬─num_hosts_active─┐
+1. │ lab3 │ 9000 │      0 │       │                   3 │                1 │
+2. │ lab4 │ 9000 │      0 │       │                   2 │                1 │
+   └──────┴──────┴────────┴───────┴─────────────────────┴──────────────────┘
+   ┌─host─┬─port─┬─status─┬─error─┬─num_hosts_remaining─┬─num_hosts_active─┐
+3. │ lab2 │ 9000 │      0 │       │                   1 │                1 │
+   └──────┴──────┴────────┴───────┴─────────────────────┴──────────────────┘
+   ┌─host─┬─port─┬─status─┬─error─┬─num_hosts_remaining─┬─num_hosts_active─┐
+4. │ lab1 │ 9000 │      0 │       │                   0 │                0 │
+   └──────┴──────┴────────┴───────┴─────────────────────┴──────────────────┘
+
+4 rows in set. Elapsed: 0.168 sec.
+```
+
+4. Копирую данные из ране заполненной локальной таблицы test.operations в распределённоую таблицу test_dist.operations_dist:
+```
+lab1 :) INSERT INTO test_dist.operations_dist SELECT * FROM test.operations;
+
+INSERT INTO test_dist.operations_dist SELECT *
+FROM test.operations
+
+Query id: 3fb948ae-856c-4d6c-b125-78b01a2f04dd
+
+Ok.
+
+0 rows in set. Elapsed: 0.249 sec. Processed 300.00 thousand rows, 12.40 MB (1.20 million rows/s., 49.73 MB/s.)
+Peak memory usage: 42.96 MiB.
+```
+
+### Тестирование и сравнение производительности запросов к локальной и распределённой таблицам
+
+#### Запрос №1
+
+Выполняю запрос суммы операций за сентябрь 2024 по именам пользователей на локальной таблице:
+```
+lab1 :) SELECT oper_name, sum(oper) FROM test.operations
+WHERE oper_dt >= '2024-09-01 00:00:00' AND oper_dt < '2024-10-01 00:00:00'
+GROUP BY oper_name
+ORDER BY oper_name;
+
+SELECT
+    oper_name,
+    sum(oper)
+FROM test.operations
+WHERE (oper_dt >= '2024-09-01 00:00:00') AND (oper_dt < '2024-10-01 00:00:00')
+GROUP BY oper_name
+ORDER BY oper_name ASC
+
+Query id: 0a4c9fa5-336a-4453-b368-abbac227bf0a
+
+   ┌─oper_name─────┬─sum(oper)─┐
+1. │ Иван Иванов   │   -779279 │
+2. │ Пётр Петров   │     25695 │
+3. │ Сидор Сидоров │    607835 │
+   └───────────────┴───────────┘
+
+3 rows in set. Elapsed: 0.018 sec. Processed 43.23 thousand rows, 1.61 MB (2.36 million rows/s., 88.10 MB/s.)
+Peak memory usage: 47.57 KiB.
+```
+
+Тот же запрос на распределённой таблице:
+```
+lab1 :) SELECT oper_name, sum(oper) FROM test_dist.operations_dist
+WHERE oper_dt >= '2024-09-01 00:00:00' AND oper_dt < '2024-10-01 00:00:00'
+GROUP BY oper_name
+ORDER BY oper_name;
+
+SELECT
+    oper_name,
+    sum(oper)
+FROM test_dist.operations_dist
+WHERE (oper_dt >= '2024-09-01 00:00:00') AND (oper_dt < '2024-10-01 00:00:00')
+GROUP BY oper_name
+ORDER BY oper_name ASC
+
+Query id: 09ed66ed-a8a0-4240-9524-295391464be9
+
+   ┌─oper_name─────┬─sum(oper)─┐
+1. │ Иван Иванов   │   -779279 │
+2. │ Пётр Петров   │     25695 │
+3. │ Сидор Сидоров │    607835 │
+   └───────────────┴───────────┘
+
+3 rows in set. Elapsed: 0.010 sec. Processed 43.23 thousand rows, 1.61 MB (4.39 million rows/s., 163.83 MB/s.)
+Peak memory usage: 419.00 KiB.
+```
+
+РЕЗУЛЬТАТ: запрос на распределённой таблице выполнился быстрее (0.010 sec против 0.018 sec).
+
+#### Запрос №2
+
+Выполняю запрос суммы операций прихода пользователя Иван Иванов по часам за 1 октября 2024 на локальной таблице:
+```
+lab1 :) SELECT toStartOfHour(oper_dt) AS h, sum(oper) AS s FROM test.operations
+WHERE oper_dt >= '2024-10-01 00:00:00' AND oper_dt < '2024-10-02 00:00:00'
+AND oper_name = 'Иван Иванов' AND oper > 0
+GROUP BY h
+ORDER BY h;
+
+SELECT
+    toStartOfHour(oper_dt) AS h,
+    sum(oper) AS s
+FROM test.operations
+WHERE (oper_dt >= '2024-10-01 00:00:00') AND (oper_dt < '2024-10-02 00:00:00') AND (oper_name = 'Иван Иванов') AND (oper > 0)
+GROUP BY h
+ORDER BY h ASC
+
+Query id: c63d2ba2-e8d5-4978-8949-7e190a3253cf
+
+    ┌───────────────────h─┬─────s─┐
+ 1. │ 2024-10-01 00:00:00 │ 46680 │
+ 2. │ 2024-10-01 01:00:00 │ 46460 │
+ 3. │ 2024-10-01 02:00:00 │ 52465 │
+ 4. │ 2024-10-01 03:00:00 │ 56523 │
+ 5. │ 2024-10-01 04:00:00 │ 89934 │
+ 6. │ 2024-10-01 05:00:00 │ 34510 │
+ 7. │ 2024-10-01 06:00:00 │ 47156 │
+ 8. │ 2024-10-01 07:00:00 │ 37654 │
+ 9. │ 2024-10-01 08:00:00 │ 85987 │
+10. │ 2024-10-01 09:00:00 │ 98349 │
+11. │ 2024-10-01 10:00:00 │ 93401 │
+12. │ 2024-10-01 11:00:00 │ 34632 │
+13. │ 2024-10-01 12:00:00 │ 48253 │
+14. │ 2024-10-01 13:00:00 │ 58466 │
+15. │ 2024-10-01 14:00:00 │ 84087 │
+16. │ 2024-10-01 15:00:00 │ 60157 │
+17. │ 2024-10-01 16:00:00 │ 77111 │
+18. │ 2024-10-01 17:00:00 │ 37586 │
+19. │ 2024-10-01 18:00:00 │ 54536 │
+20. │ 2024-10-01 19:00:00 │ 34471 │
+21. │ 2024-10-01 20:00:00 │ 57108 │
+22. │ 2024-10-01 21:00:00 │ 34727 │
+23. │ 2024-10-01 22:00:00 │ 47264 │
+24. │ 2024-10-01 23:00:00 │ 86117 │
+    └─────────────────────┴───────┘
+
+24 rows in set. Elapsed: 0.004 sec. Processed 22.78 thousand rows, 304.54 KB (6.27 million rows/s., 83.82 MB/s.)
+Peak memory usage: 43.66 KiB.
+```
+
+Тот же запрос на распределённой таблице:
+```
+lab1 :) SELECT toStartOfHour(oper_dt) AS h, sum(oper) AS s FROM test_dist.operations_dist
+WHERE oper_dt >= '2024-10-01 00:00:00' AND oper_dt < '2024-10-02 00:00:00'
+AND oper_name = 'Иван Иванов' AND oper > 0
+GROUP BY h
+ORDER BY h;
+
+SELECT
+    toStartOfHour(oper_dt) AS h,
+    sum(oper) AS s
+FROM test_dist.operations_dist
+WHERE (oper_dt >= '2024-10-01 00:00:00') AND (oper_dt < '2024-10-02 00:00:00') AND (oper_name = 'Иван Иванов') AND (oper > 0)
+GROUP BY h
+ORDER BY h ASC
+
+Query id: aab603d2-c44d-4156-ada2-01617a5c42bd
+
+    ┌───────────────────h─┬─────s─┐
+ 1. │ 2024-10-01 00:00:00 │ 46680 │
+ 2. │ 2024-10-01 01:00:00 │ 46460 │
+ 3. │ 2024-10-01 02:00:00 │ 52465 │
+ 4. │ 2024-10-01 03:00:00 │ 56523 │
+ 5. │ 2024-10-01 04:00:00 │ 89934 │
+ 6. │ 2024-10-01 05:00:00 │ 34510 │
+ 7. │ 2024-10-01 06:00:00 │ 47156 │
+ 8. │ 2024-10-01 07:00:00 │ 37654 │
+ 9. │ 2024-10-01 08:00:00 │ 85987 │
+10. │ 2024-10-01 09:00:00 │ 98349 │
+11. │ 2024-10-01 10:00:00 │ 93401 │
+12. │ 2024-10-01 11:00:00 │ 34632 │
+13. │ 2024-10-01 12:00:00 │ 48253 │
+14. │ 2024-10-01 13:00:00 │ 58466 │
+15. │ 2024-10-01 14:00:00 │ 84087 │
+16. │ 2024-10-01 15:00:00 │ 60157 │
+17. │ 2024-10-01 16:00:00 │ 77111 │
+18. │ 2024-10-01 17:00:00 │ 37586 │
+19. │ 2024-10-01 18:00:00 │ 54536 │
+20. │ 2024-10-01 19:00:00 │ 34471 │
+21. │ 2024-10-01 20:00:00 │ 57108 │
+22. │ 2024-10-01 21:00:00 │ 34727 │
+23. │ 2024-10-01 22:00:00 │ 47264 │
+24. │ 2024-10-01 23:00:00 │ 86117 │
+    └─────────────────────┴───────┘
+
+24 rows in set. Elapsed: 0.061 sec. Processed 22.78 thousand rows, 850.82 KB (372.91 thousand rows/s., 13.93 MB/s.)
+Peak memory usage: 411.72 KiB.
+```
+
+РЕЗУЛЬТАТ: запрос на распределённой таблице выполнялся значительно дольше, чем на локальной (0.061 sec против 0.004 sec).
+ПРЕДПОЛОЖЕНИЕ: возможно, что при запросе относительно небольшого количества данных, накладные расходы отработки его на кластере перевешивают преимущества распределённой обработки запроса.
+Проверю это в запросе №3.
+
+#### Запрос №3
+
+Выполняю запрос суммы операций прихода пользователя Иван Иванов по дням за сентябрь 2024 на локальной таблице:
+```
+lab1 :) SELECT toStartOfDay(oper_dt) AS h, sum(oper) AS s FROM test.operations
+WHERE oper_dt >= '2024-09-01 00:00:00' AND oper_dt < '2024-10-01 00:00:00'
+AND oper_name = 'Иван Иванов' AND oper > 0
+GROUP BY h
+ORDER BY h;
+
+SELECT
+    toStartOfDay(oper_dt) AS h,
+    sum(oper) AS s
+FROM test.operations
+WHERE (oper_dt >= '2024-09-01 00:00:00') AND (oper_dt < '2024-10-01 00:00:00') AND (oper_name = 'Иван Иванов') AND (oper > 0)
+GROUP BY h
+ORDER BY h ASC
+
+Query id: 5b7e217b-d40b-4cd1-8fd8-2c95d21a9c1c
+
+    ┌───────────────────h─┬───────s─┐
+ 1. │ 2024-09-01 00:00:00 │ 1387048 │
+ 2. │ 2024-09-02 00:00:00 │ 1354309 │
+ 3. │ 2024-09-03 00:00:00 │ 1400067 │
+ 4. │ 2024-09-04 00:00:00 │ 1278262 │
+ 5. │ 2024-09-05 00:00:00 │ 1292971 │
+ 6. │ 2024-09-06 00:00:00 │ 1247133 │
+ 7. │ 2024-09-07 00:00:00 │ 1365794 │
+ 8. │ 2024-09-08 00:00:00 │ 1250538 │
+ 9. │ 2024-09-09 00:00:00 │ 1416730 │
+10. │ 2024-09-10 00:00:00 │ 1267046 │
+11. │ 2024-09-11 00:00:00 │ 1322078 │
+12. │ 2024-09-12 00:00:00 │ 1302815 │
+13. │ 2024-09-13 00:00:00 │ 1291035 │
+14. │ 2024-09-14 00:00:00 │ 1323629 │
+15. │ 2024-09-15 00:00:00 │ 1322617 │
+16. │ 2024-09-16 00:00:00 │ 1212639 │
+17. │ 2024-09-17 00:00:00 │ 1240230 │
+18. │ 2024-09-18 00:00:00 │ 1480724 │
+19. │ 2024-09-19 00:00:00 │ 1311580 │
+20. │ 2024-09-20 00:00:00 │ 1295839 │
+21. │ 2024-09-21 00:00:00 │ 1396495 │
+22. │ 2024-09-22 00:00:00 │ 1430717 │
+23. │ 2024-09-23 00:00:00 │ 1349871 │
+24. │ 2024-09-24 00:00:00 │ 1385369 │
+25. │ 2024-09-25 00:00:00 │ 1372300 │
+26. │ 2024-09-26 00:00:00 │ 1291704 │
+27. │ 2024-09-27 00:00:00 │ 1443136 │
+28. │ 2024-09-28 00:00:00 │ 1167226 │
+29. │ 2024-09-29 00:00:00 │ 1237934 │
+30. │ 2024-09-30 00:00:00 │ 1292182 │
+    └─────────────────────┴─────────┘
+
+30 rows in set. Elapsed: 0.006 sec. Processed 43.23 thousand rows, 1.61 MB (6.83 million rows/s., 254.75 MB/s.)
+Peak memory usage: 43.10 KiB.
+```
+
+Тот же запрос на распределённой таблице:
+```
+lab1 :) SELECT toStartOfDay(oper_dt) AS h, sum(oper) AS s FROM test_dist.operations_dist
+WHERE oper_dt >= '2024-09-01 00:00:00' AND oper_dt < '2024-10-01 00:00:00'
+AND oper_name = 'Иван Иванов' AND oper > 0
+GROUP BY h
+ORDER BY h;
+
+SELECT
+    toStartOfDay(oper_dt) AS h,
+    sum(oper) AS s
+FROM test_dist.operations_dist
+WHERE (oper_dt >= '2024-09-01 00:00:00') AND (oper_dt < '2024-10-01 00:00:00') AND (oper_name = 'Иван Иванов') AND (oper > 0)
+GROUP BY h
+ORDER BY h ASC
+
+Query id: c3840258-f962-4409-8671-8b0d81a8b921
+
+    ┌───────────────────h─┬───────s─┐
+ 1. │ 2024-09-01 00:00:00 │ 1387048 │
+ 2. │ 2024-09-02 00:00:00 │ 1354309 │
+ 3. │ 2024-09-03 00:00:00 │ 1400067 │
+ 4. │ 2024-09-04 00:00:00 │ 1278262 │
+ 5. │ 2024-09-05 00:00:00 │ 1292971 │
+ 6. │ 2024-09-06 00:00:00 │ 1247133 │
+ 7. │ 2024-09-07 00:00:00 │ 1365794 │
+ 8. │ 2024-09-08 00:00:00 │ 1250538 │
+ 9. │ 2024-09-09 00:00:00 │ 1416730 │
+10. │ 2024-09-10 00:00:00 │ 1267046 │
+11. │ 2024-09-11 00:00:00 │ 1322078 │
+12. │ 2024-09-12 00:00:00 │ 1302815 │
+13. │ 2024-09-13 00:00:00 │ 1291035 │
+14. │ 2024-09-14 00:00:00 │ 1323629 │
+15. │ 2024-09-15 00:00:00 │ 1322617 │
+16. │ 2024-09-16 00:00:00 │ 1212639 │
+17. │ 2024-09-17 00:00:00 │ 1240230 │
+18. │ 2024-09-18 00:00:00 │ 1480724 │
+19. │ 2024-09-19 00:00:00 │ 1311580 │
+20. │ 2024-09-20 00:00:00 │ 1295839 │
+21. │ 2024-09-21 00:00:00 │ 1396495 │
+22. │ 2024-09-22 00:00:00 │ 1430717 │
+23. │ 2024-09-23 00:00:00 │ 1349871 │
+24. │ 2024-09-24 00:00:00 │ 1385369 │
+25. │ 2024-09-25 00:00:00 │ 1372300 │
+26. │ 2024-09-26 00:00:00 │ 1291704 │
+27. │ 2024-09-27 00:00:00 │ 1443136 │
+28. │ 2024-09-28 00:00:00 │ 1167226 │
+29. │ 2024-09-29 00:00:00 │ 1237934 │
+30. │ 2024-09-30 00:00:00 │ 1292182 │
+    └─────────────────────┴─────────┘
+
+30 rows in set. Elapsed: 0.013 sec. Processed 43.23 thousand rows, 1.61 MB (3.27 million rows/s., 122.14 MB/s.)
+Peak memory usage: 413.98 KiB.
+```
+
+РЕЗУЛЬТАТ: распределённый запрос хоть и не выполнился быстрее, и даже не сравнялся по времени, но всё равно время выполнения стало ощутимо меньше (0.013 sec против 0.006 sec).
+ВЫВОД: предположение о зависимости скорости работы распределённого запроса от количества запрошенных данных, скорее всего, верное.
