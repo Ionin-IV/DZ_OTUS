@@ -765,7 +765,7 @@ Ok.
 Peak memory usage: 163.14 MiB.
 ```
 
-7. Запрашиваю координаты самой серверной сотовой вышки:
+7. Запрашиваю координаты самой северной сотовой вышки:
 ```
 lab1 :) SELECT lat, lon FROM test_dist.cell_towers_dist WHERE lat = (SELECT MAX(lat) FROM test_dist.cell_towers_dist);
 
