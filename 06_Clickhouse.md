@@ -338,7 +338,7 @@ Query id: bdc39839-9161-4c3b-b58c-cd4397c11c75
 4 rows in set. Elapsed: 0.589 sec.
 ```
 
-3. Создаю распределнноую таблицу test_dist.operations_dist:
+3. Создаю распределённую таблицу test_dist.operations_dist:
 ```
 lab1 :) CREATE TABLE test_dist.operations_dist ON CLUSTER test_cluster AS test_dist.operations_local
 ENGINE = Distributed(test_cluster, test_dist, operations_local, rand());
@@ -362,7 +362,7 @@ Query id: 08f07aed-b7d0-4a7d-82c2-c4a83706d93b
 4 rows in set. Elapsed: 0.168 sec.
 ```
 
-4. Копирую данные из ране заполненной локальной таблицы test.operations в распределённоую таблицу test_dist.operations_dist:
+4. Копирую данные из ране заполненной локальной таблицы test.operations в распределённую таблицу test_dist.operations_dist:
 ```
 lab1 :) INSERT INTO test_dist.operations_dist SELECT * FROM test.operations;
 
@@ -729,7 +729,7 @@ Query id: f410838b-879f-4bf1-89ad-10231b97680b
 4 rows in set. Elapsed: 0.600 sec.
 ```
 
-5. Создаю распределнноую таблицу test_dist.cell_towers_dist:
+5. Создаю распределённую таблицу test_dist.cell_towers_dist:
 ```
 lab1 :) CREATE TABLE test_dist.cell_towers_dist ON CLUSTER test_cluster AS test_dist.cell_towers_local
 ENGINE = Distributed(test_cluster, test_dist, cell_towers_local, rand());
