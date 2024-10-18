@@ -657,3 +657,216 @@ Peak memory usage: 413.98 KiB.
 __РЕЗУЛЬТАТ__: распределённый запрос хоть и не выполнился быстрее локального, но всё равно время выполнения стало ощутимо меньше (0.013 sec против 0.006 sec).
 
 __ВЫВОД__: предположение о зависимости скорости работы распределённого запроса от количества запрошенных данных, скорее всего, верное.
+
+
+### Загрузка и тестирование дополнительной БД
+
+1. Загружаю набор данных по вышкам сотовой связи: https://clickhouse.com/docs/ru/getting-started/example-datasets/cell-towers.
+
+2. Распаковываю архив:
+```
+unxz cell_towers.csv.xz
+```
+
+3. Т.к. набор данных слишком большой, из-за чего, при загрузке в БД, происходит ошибка нехватки памяти, то выгружаю данные только по нашей стране в отдельный файл:
+```
+cat cell_towers.csv | grep "\",250," >> cell_towers_ru.csv
+```
+
+4. Создаю локальные таблицы test_dist.cell_towers_local на всём кластере однйо командой:
+```
+lab1 :) CREATE TABLE test_dist.cell_towers_local ON CLUSTER test_cluster
+(
+    radio Enum8('' = 0, 'CDMA' = 1, 'GSM' = 2, 'LTE' = 3, 'NR' = 4, 'UMTS' = 5),
+    mcc UInt16,
+    net UInt16,
+    area UInt16,
+    cell UInt64,
+    unit Int16,
+    lon Float64,
+    lat Float64,
+    range UInt32,
+    samples UInt32,
+    changeable UInt8,
+    created DateTime,
+    updated DateTime,
+    averageSignal UInt8
+)
+ENGINE = ReplicatedMergeTree('/test_cluster/tables/{shard}/cell_towers_local','{replica}')
+PARTITION BY mcc
+ORDER BY (radio, mcc, net, created);
+
+CREATE TABLE test_dist.cell_towers_local ON CLUSTER test_cluster
+(
+    `radio` Enum8('' = 0, 'CDMA' = 1, 'GSM' = 2, 'LTE' = 3, 'NR' = 4, 'UMTS' = 5),
+    `mcc` UInt16,
+    `net` UInt16,
+    `area` UInt16,
+    `cell` UInt64,
+    `unit` Int16,
+    `lon` Float64,
+    `lat` Float64,
+    `range` UInt32,
+    `samples` UInt32,
+    `changeable` UInt8,
+    `created` DateTime,
+    `updated` DateTime,
+    `averageSignal` UInt8
+)
+ENGINE = ReplicatedMergeTree('/test_cluster/tables/{shard}/cell_towers_local', '{replica}')
+PARTITION BY mcc
+ORDER BY (radio, mcc, net, created)
+
+Query id: f410838b-879f-4bf1-89ad-10231b97680b
+
+   ┌─host─┬─port─┬─status─┬─error─┬─num_hosts_remaining─┬─num_hosts_active─┐
+1. │ lab3 │ 9000 │      0 │       │                   3 │                0 │
+2. │ lab2 │ 9000 │      0 │       │                   2 │                0 │
+3. │ lab1 │ 9000 │      0 │       │                   1 │                0 │
+4. │ lab4 │ 9000 │      0 │       │                   0 │                0 │
+   └──────┴──────┴────────┴───────┴─────────────────────┴──────────────────┘
+
+4 rows in set. Elapsed: 0.600 sec.
+```
+
+5. Создаю распределнноую таблицу test_dist.cell_towers_dist:
+```
+lab1 :) CREATE TABLE test_dist.cell_towers_dist ON CLUSTER test_cluster AS test_dist.cell_towers_local
+ENGINE = Distributed(test_cluster, test_dist, cell_towers_local, rand());
+
+CREATE TABLE test_dist.cell_towers_dist ON CLUSTER test_cluster AS test_dist.cell_towers_local
+ENGINE = Distributed(test_cluster, test_dist, cell_towers_local, rand())
+
+Query id: 053f971d-cf07-428d-a3f3-fd673f69e592
+
+   ┌─host─┬─port─┬─status─┬─error─┬─num_hosts_remaining─┬─num_hosts_active─┐
+1. │ lab3 │ 9000 │      0 │       │                   3 │                1 │
+2. │ lab4 │ 9000 │      0 │       │                   2 │                1 │
+3. │ lab1 │ 9000 │      0 │       │                   1 │                1 │
+   └──────┴──────┴────────┴───────┴─────────────────────┴──────────────────┘
+   ┌─host─┬─port─┬─status─┬─error─┬─num_hosts_remaining─┬─num_hosts_active─┐
+4. │ lab2 │ 9000 │      0 │       │                   0 │                0 │
+   └──────┴──────┴────────┴───────┴─────────────────────┴──────────────────┘
+
+4 rows in set. Elapsed: 0.125 sec.
+```
+
+6. Загружаю даннеы в распределённую таблицу:
+```
+lab1 :) INSERT INTO test_dist.cell_towers_dist FROM INFILE '/root/cell_towers_ru.csv' FORMAT CSV;
+
+INSERT INTO test_dist.cell_towers_dist FROM INFILE '/root/cell_towers_ru.csv' FORMAT CSV
+
+Query id: 15fdaa8c-815f-4b69-9190-7499e7e8283b
+
+Ok.
+
+1953176 rows in set. Elapsed: 4.368 sec. Processed 1.95 million rows, 213.52 MB (447.11 thousand rows/s., 48.88 MB/s.)
+Peak memory usage: 163.14 MiB.
+```
+
+7. Запрашиваю координаты самой серверной сотовой вышки:
+```
+lab1 :) SELECT lat, lon FROM test_dist.cell_towers_dist WHERE lat = (SELECT MAX(lat) FROM test_dist.cell_towers_dist);
+
+SELECT
+    lat,
+    lon
+FROM test_dist.cell_towers_dist
+WHERE lat = (
+    SELECT MAX(lat)
+    FROM test_dist.cell_towers_dist
+)
+
+Query id: c05a53ed-2956-4d6c-a7fa-e6fed5d23d37
+
+   ┌─────────────lat─┬─────────────lon─┐
+1. │ 73.507461547852 │ 80.519485473633 │
+   └─────────────────┴─────────────────┘
+   ┌─────────────lat─┬─────────────lon─┐
+2. │ 73.507461547852 │ 80.518112182617 │
+   └─────────────────┴─────────────────┘
+
+2 rows in set. Elapsed: 0.091 sec. Processed 3.91 million rows, 31.26 MB (43.04 million rows/s., 344.37 MB/s.)
+Peak memory usage: 865.07 KiB.
+```
+Первая координата соответствует адресу: улица Воронина, 10, посёлок городского типа Диксон, городское поселение Диксон, Таймырский Долгано-Ненецкий район, Красноярский край
+
+8. Запрашиваю координаты самой южной сотовой вышки:
+```
+lab1 :) SELECT lat, lon FROM test_dist.cell_towers_dist WHERE lat = (SELECT MIN(lat) FROM test_dist.cell_towers_dist);
+
+SELECT
+    lat,
+    lon
+FROM test_dist.cell_towers_dist
+WHERE lat = (
+    SELECT MIN(lat)
+    FROM test_dist.cell_towers_dist
+)
+
+Query id: 1690300a-4bf3-467a-8726-227759cd05a6
+
+   ┌───────lat─┬───────lon─┐
+1. │ 41.370393 │ 47.891465 │
+   └───────────┴───────────┘
+
+1 row in set. Elapsed: 0.035 sec. Processed 3.91 million rows, 31.29 MB (111.02 million rows/s., 889.20 MB/s.)
+Peak memory usage: 850.98 KiB.
+```
+Координата соответствует адресу: Докузпаринский район, Республика Дагестан
+
+9. Запрашиваю расстояние между самой северной и самой южной вышками:
+```
+lab1 :) SELECT geoDistance(
+(SELECT lat FROM test_dist.cell_towers_dist WHERE lat = (SELECT MAX(lat) FROM test_dist.cell_towers_dist) LIMIT 1),
+(SELECT lon FROM test_dist.cell_towers_dist WHERE lat = (SELECT MAX(lat) FROM test_dist.cell_towers_dist) LIMIT 1),
+(SELECT lat FROM test_dist.cell_towers_dist WHERE lat = (SELECT MIN(lat) FROM test_dist.cell_towers_dist) LIMIT 1),
+(SELECT lon FROM test_dist.cell_towers_dist WHERE lat = (SELECT MIN(lat) FROM test_dist.cell_towers_dist) LIMIT 1)
+) / 1000 AS "Distance, km";
+
+SELECT geoDistance((
+        SELECT lat
+        FROM test_dist.cell_towers_dist
+        WHERE lat = (
+            SELECT MAX(lat)
+            FROM test_dist.cell_towers_dist
+        )
+        LIMIT 1
+    ), (
+        SELECT lon
+        FROM test_dist.cell_towers_dist
+        WHERE lat = (
+            SELECT MAX(lat)
+            FROM test_dist.cell_towers_dist
+        )
+        LIMIT 1
+    ), (
+        SELECT lat
+        FROM test_dist.cell_towers_dist
+        WHERE lat = (
+            SELECT MIN(lat)
+            FROM test_dist.cell_towers_dist
+        )
+        LIMIT 1
+    ), (
+        SELECT lon
+        FROM test_dist.cell_towers_dist
+        WHERE lat = (
+            SELECT MIN(lat)
+            FROM test_dist.cell_towers_dist
+        )
+        LIMIT 1
+    )) / 1000 AS `Distance, km`
+
+Query id: f8418a8e-1c1d-42e3-a3f2-d68a7b81c1e6
+
+   ┌──────Distance, km─┐
+1. │ 3823.363025957163 │
+   └───────────────────┘
+
+1 row in set. Elapsed: 0.148 sec. Processed 10.27 million rows, 82.20 MB (69.39 million rows/s., 555.42 MB/s.)
+Peak memory usage: 2.54 MiB.
+```
+
+__РЕЗУЛЬТАТ__: время выполнения запросов отдельных точек (~0.035 sec) и расчёт расстояния между ними (~0.148 sec), с четырьмя такими подзапросами, плюс расчётом самого расстояния, примерно соотвествует.
