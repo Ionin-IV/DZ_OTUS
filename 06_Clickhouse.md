@@ -82,7 +82,7 @@ systemctl start clickhouse-server
 </clickhouse>
 ```
 
-2. Добавляю настройку Clickhouse Keeper в файл конфигурации /etc/clickhouse-server/config.d/keeper_server.xml со следующим содержимым (для первого узла:
+2. Добавляю настройку Clickhouse Keeper в файл конфигурации /etc/clickhouse-server/config.d/keeper_server.xml со следующим содержимым (для первого узла):
 ```
 <clickhouse>
 
