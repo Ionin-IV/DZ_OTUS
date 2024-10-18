@@ -751,7 +751,7 @@ Query id: 053f971d-cf07-428d-a3f3-fd673f69e592
 4 rows in set. Elapsed: 0.125 sec.
 ```
 
-6. Загружаю даннеы в распределённую таблицу:
+6. Загружаю данные в распределённую таблицу:
 ```
 lab1 :) INSERT INTO test_dist.cell_towers_dist FROM INFILE '/root/cell_towers_ru.csv' FORMAT CSV;
 
