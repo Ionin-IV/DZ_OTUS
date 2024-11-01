@@ -168,7 +168,6 @@ S: c1b179c73eb2a8f85352bf7f049809714ed8d559 192.168.1.22:7001
 
 11. Проверяю, что кластер создан и работает:
 ```
-[root@lab1 ~]# redis-cli -c -h 192.168.1.21 -p 7000
 192.168.1.21:7000> cluster nodes
 4e76bcdd078e00ea2df14712b1290bcdae5aaa61 192.168.1.23:7000 master - 0 1729598166451 3 connected 10923-16383
 3b6f4abea55670f067f6262045e10d955db42508 192.168.1.21:7001 slave aaa2a6d95ac5f05f54779cc003d95394f999a446 0 1729598166351 4 connected
@@ -177,3 +176,102 @@ aaa2a6d95ac5f05f54779cc003d95394f999a446 192.168.1.22:7000 master - 0 1729598165
 bf4f2eb80aad547bccd6156aa69d34a76493a3fa 192.168.1.21:7000 myself,master - 0 0 1 connected 0-5460
 c1b179c73eb2a8f85352bf7f049809714ed8d559 192.168.1.22:7001 slave bf4f2eb80aad547bccd6156aa69d34a76493a3fa 0 1729598167469 5 connected
 ```
+
+12. Кластер создан и работает, но одна пара мастер-реплика создалась на одном сервере (192.168.1.23:7000/192.168.1.23:7001). Исправляю это, переподчиняя реплики со сдвигом вправо относительно мастеров (192.168.1.21:7000/192.168.1.22:7001, 192.168.1.22:7000/192.168.1.23:7001, 192.168.1.23:7000/192.168.1.21:7001):
+```
+192.168.1.21:7001> CLUSTER REPLICATE 4e76bcdd078e00ea2df14712b1290bcdae5aaa61
+OK
+
+192.168.1.22:7001> CLUSTER REPLICATE bf4f2eb80aad547bccd6156aa69d34a76493a3fa
+OK
+
+192.168.1.23:7001> CLUSTER REPLICATE aaa2a6d95ac5f05f54779cc003d95394f999a446
+OK
+```
+
+13. Теперь кластер собран правильно:
+```
+192.168.1.21:7000> cluster nodes
+bf4f2eb80aad547bccd6156aa69d34a76493a3fa 192.168.1.21:7000 myself,master - 0 0 9 connected 0-5460
+aaa2a6d95ac5f05f54779cc003d95394f999a446 192.168.1.22:7000 master - 0 1730454073297 2 connected 5461-10922
+3b6f4abea55670f067f6262045e10d955db42508 192.168.1.21:7001 slave 4e76bcdd078e00ea2df14712b1290bcdae5aaa61 0 1730454073297 14 connected
+c1b179c73eb2a8f85352bf7f049809714ed8d559 192.168.1.22:7001 slave bf4f2eb80aad547bccd6156aa69d34a76493a3fa 0 1730454072687 9 connected
+f8f98838a95da2acffb60327903b585c3ac4a2d0 192.168.1.23:7001 slave aaa2a6d95ac5f05f54779cc003d95394f999a446 0 1730454072183 8 connected
+4e76bcdd078e00ea2df14712b1290bcdae5aaa61 192.168.1.23:7000 master - 0 1730454072284 14 connected 10923-16383
+```
+
+### Тестирование загрузки разных структур данных
+
+Для тестирования будет создан JSON-файл со следующей структурой:
+- name - username пользователя
+- data - данные пользователя
+   - name - имя пользователя
+   - age - возраст пользователя
+   - post - номер поста пользователя
+   - rating - рэйтинг пользователя
+
+1. Создаю JSON-файл users.json следующим скриптом:
+```
+#!/bin/sh
+
+NAMES=("Ivan" "Petr" "Pavel" "Dmitry" "Aleksey" "Sergey" "Vladimir" "Victor" "Oleg" "Andrey")
+
+for (( i=1; i <= 10000; i++ ))
+do
+        NAME=`tr -dc 0-9 </dev/urandom | head -c 1`
+        AGE=`tr -dc 1-9 </dev/urandom | head -c 2`
+        POST=`tr -dc 1-9 </dev/urandom | head -c 3`
+        RATING=$((10001-$i))
+
+        echo { \"user\": \"user$i\", \"data\": { \"\name\": \"${NAMES[$NAME]}\", \"age\": \"$AGE\", \"post\": \"$POST\", \"rating\": \"$RATING\" } } >> users.json
+done
+```
+
+#### Загрузка строк
+
+2. Провожу парсинг JSON в файл со списком команд для Redis скриптом:
+```
+#!/bin/sh
+
+while read JS; do
+
+USER=`echo $JS | jq '.user' | sed 's/\"//g'`
+NAME=`echo $JS | jq '.data.name' | sed 's/\"//g'`
+
+echo SET user:$USER:name $NAME >> lines.txt
+
+done <users.json
+```
+
+3. Провожу построчное выполнение команд из сгенерированного файла скриптом:
+```
+#!/bin/sh
+
+while read COMM; do
+
+redis-cli -c -h 192.168.1.21 -p 7000 $COMM
+
+done <lines.redis
+```
+Примечание: время выполнения загрузки получаю командой time.
+Полученный результат:
+```
+real    0m11.352s
+user    0m4.505s
+sys     0m5.218s
+```
+
+ 4. Проверяю, что данные появились в БД:
+```
+192.168.1.21:7000> get user:user557:name
+"Sergey"
+```
+
+5. Очищаю БД:
+```
+192.168.1.21:7000> flushall
+OK
+```
+
+
+#### Загрузка Хэш-таблиц
