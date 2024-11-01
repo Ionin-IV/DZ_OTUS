@@ -210,7 +210,7 @@ f8f98838a95da2acffb60327903b585c3ac4a2d0 192.168.1.23:7001 slave aaa2a6d95ac5f05
    - post - номер поста пользователя
    - rating - рэйтинг пользователя
 
-1. Создаю JSON-файл users.json следующим скриптом:
+Создаю JSON-файл users.json следующим скриптом:
 ```
 #!/bin/sh
 
@@ -226,6 +226,16 @@ do
         echo { \"user\": \"user$i\", \"data\": { \"\name\": \"${NAMES[$NAME]}\", \"age\": \"$AGE\", \"post\": \"$POST\", \"rating\": \"$RATING\" } } >> users.json
 done
 ```
+
+Фрагмент сгенерированных данных:
+```
+{ "user": "user1", "data": { "name": "Ivan", "age": "78", "posts": "349", "raiting": "10000" } }
+{ "user": "user2", "data": { "name": "Sergey", "age": "88", "posts": "944", "raiting": "9999" } }
+{ "user": "user3", "data": { "name": "Aleksey", "age": "68", "posts": "634", "raiting": "9998" } }
+{ "user": "user4", "data": { "name": "Aleksey", "age": "32", "posts": "252", "raiting": "9997" } }
+{ "user": "user5", "data": { "name": "Sergey", "age": "56", "posts": "865", "raiting": "9996" } }
+```
+
 
 #### Загрузка строк
 
