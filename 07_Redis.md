@@ -254,7 +254,7 @@ redis-cli -c -h 192.168.1.21 -p 7000 $COMM
 done <lines.redis
 ```
 Примечание: время выполнения загрузки получаю командой time.
-Полученный результат:
+Время выполнения загрузки:
 ```
 real    0m11.352s
 user    0m4.505s
@@ -275,3 +275,169 @@ OK
 
 
 #### Загрузка Хэш-таблиц
+
+6. Провожу парсинг JSON в файл со списком команд для Redis скриптом:
+```
+#!/bin/sh
+
+while read JS; do
+
+USER=`echo $JS | jq '.user' | sed 's/\"//g'`
+NAME=`echo $JS | jq '.data.name' | sed 's/\"//g'`
+AGE=`echo $JS | jq '.data.age' | sed 's/\"//g'`
+
+echo HMSET $USER name $NAME age $AGE >> hset.txt
+
+done <users.json
+```
+
+7. Провожу построчное выполнение команд из сгенерированного файла скриптом:
+```
+#!/bin/sh
+
+while read COMM; do
+
+redis-cli -c -h 192.168.1.21 -p 7000 $COMM
+
+done <hset.txt
+```
+Время выполнения загрузки:
+```
+real    0m11.672s
+user    0m4.495s
+sys     0m5.367s
+```
+
+8. Проверяю, что данные появились в БД:
+```
+192.168.1.21:7000> hgetall user992
+1) "name"
+2) "Vladimir"
+3) "age"
+4) "78"
+```
+
+9. Очищаю БД:
+```
+192.168.1.21:7000> flushall
+OK
+```
+
+
+#### Загрузка упорядоченных множеств
+
+10. Провожу парсинг JSON в файл со списком команд для Redis скриптом:
+```
+#!/bin/sh
+
+while read JS; do
+
+USER=`echo $JS | jq '.user' | sed 's/\"//g'`
+RATING=`echo $JS | jq '.data.rating' | sed 's/\"//g'`
+
+echo ZADD users:rating $RATING user:$USER >> zadd.txt
+
+done <users.json
+```
+
+11. Провожу построчное выполнение команд из сгенерированного файла скриптом:
+```
+#!/bin/sh
+
+while read COMM; do
+
+redis-cli -c -h 192.168.1.21 -p 7000 $COMM
+
+done <zadd.redis
+```
+Время выполнения загрузки:
+```
+real    0m12.429s
+user    0m4.559s
+sys     0m5.777s
+```
+
+12. Проверяю, что данные появились в БД:
+```
+192.168.1.22:7000> zrange users:rating 0 10
+ 1) "user:user10000"
+ 2) "user:user9999"
+ 3) "user:user9998"
+ 4) "user:user9997"
+ 5) "user:user9996"
+ 6) "user:user9995"
+ 7) "user:user9994"
+ 8) "user:user9993"
+ 9) "user:user9992"
+10) "user:user9991"
+11) "user:user9990"
+
+192.168.1.22:7000> zrank users:rating user:user9993
+(integer) 7
+```
+
+13. Очищаю БД:
+```
+192.168.1.21:7000> flushall
+OK
+```
+
+
+#### Загрузка списков
+
+14. Провожу парсинг JSON в файл со списком команд для Redis скриптом (т.к. user имеет по одному значению post, то списки формирую не по user, а по name):
+```
+#!/bin/sh
+
+while read JS; do
+
+NAME=`echo $JS | jq '.data.name' | sed 's/\"//g'`
+POST=`echo $JS | jq '.data.posts' | sed 's/\"//g'`
+
+echo RPUSH name:$NAME:posts post:$POST >> lists.txt
+
+done <users.json
+```
+
+15. Провожу построчное выполнение команд из сгенерированного файла скриптом:
+```
+#!/bin/sh
+
+while read COMM; do
+
+redis-cli -c -h 192.168.1.21 -p 7000 $COMM
+
+done <lists.redis
+```
+Время выполнения загрузки:
+```
+real    0m12.593s
+user    0m4.492s
+sys     0m6.003s
+```
+
+16. Проверяю, что данные появились в БД:
+```
+192.168.1.21:7000> llen name:Ivan:posts
+-> Redirected to slot [10382] located at 192.168.1.22:7000
+(integer) 1037
+
+192.168.1.22:7000> lrange name:Ivan:posts 0 10
+ 1) "post:349"
+ 2) "post:895"
+ 3) "post:977"
+ 4) "post:869"
+ 5) "post:313"
+ 6) "post:352"
+ 7) "post:732"
+ 8) "post:237"
+ 9) "post:473"
+10) "post:743"
+11) "post:586"
+```
+
+17. Очищаю БД:
+```
+192.168.1.21:7000> flushall
+OK
+```
