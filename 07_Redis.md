@@ -253,6 +253,14 @@ echo SET user:$USER:name $NAME >> lines.txt
 
 done <users.json
 ```
+Фрагмент полученного файла:
+```
+SET user:user1:name Ivan
+SET user:user2:name Sergey
+SET user:user3:name Aleksey
+SET user:user4:name Aleksey
+SET user:user5:name Sergey
+```
 
 2. Провожу построчное выполнение команд из сгенерированного файла скриптом:
 ```
@@ -305,6 +313,14 @@ AGE=`echo $JS | jq '.data.age' | sed 's/\"//g'`
 echo HMSET $USER name $NAME age $AGE >> hset.txt
 
 done <users.json
+```
+Фрагмент полученного файла:
+```
+HMSET user1 name Ivan age 78
+HMSET user2 name Sergey age 88
+HMSET user3 name Aleksey age 68
+HMSET user4 name Aleksey age 32
+HMSET user5 name Sergey age 56
 ```
 
 2. Провожу построчное выполнение команд из сгенерированного файла скриптом:
@@ -360,6 +376,14 @@ RATING=`echo $JS | jq '.data.rating' | sed 's/\"//g'`
 echo ZADD users:rating $RATING user:$USER >> zadd.txt
 
 done <users.json
+```
+Фрагмент полученного файла:
+```
+ZADD users:rating 10000 user:user1
+ZADD users:rating 9999 user:user2
+ZADD users:rating 9998 user:user3
+ZADD users:rating 9997 user:user4
+ZADD users:rating 9996 user:user5
 ```
 
 2. Провожу построчное выполнение команд из сгенерированного файла скриптом:
@@ -425,6 +449,14 @@ POST=`echo $JS | jq '.data.posts' | sed 's/\"//g'`
 echo RPUSH name:$NAME:posts post:$POST >> lists.txt
 
 done <users.json
+```
+Фрагмент полученного файла:
+```
+RPUSH name:Ivan:posts post:349
+RPUSH name:Sergey:posts post:944
+RPUSH name:Aleksey:posts post:634
+RPUSH name:Aleksey:posts post:252
+RPUSH name:Sergey:posts post:865
 ```
 
 2. Провожу построчное выполнение команд из сгенерированного файла скриптом:
