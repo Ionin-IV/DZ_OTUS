@@ -279,14 +279,14 @@ sys     0m5.218s
 
 5. Очищаю БД:
 ```
-192.168.1.21:7000> flushall
-OK
-
-192.168.1.22:7000> flushall
-OK
-
-192.168.1.23:7000> flushall
-OK
+[root@lab1 ~]# redis-trib call 192.168.1.21:7000 FLUSHALL
+>>> Calling FLUSHALL
+192.168.1.21:7000: OK
+192.168.1.22:7000: OK
+192.168.1.21:7001: READONLY You can't write against a read only slave.
+192.168.1.22:7001: READONLY You can't write against a read only slave.
+192.168.1.23:7001: READONLY You can't write against a read only slave.
+192.168.1.23:7000: OK
 ```
 
 
@@ -335,14 +335,14 @@ sys     0m5.367s
 
 9. Очищаю БД:
 ```
-192.168.1.21:7000> flushall
-OK
-
-192.168.1.22:7000> flushall
-OK
-
-192.168.1.23:7000> flushall
-OK
+[root@lab1 ~]# redis-trib call 192.168.1.21:7000 FLUSHALL
+>>> Calling FLUSHALL
+192.168.1.21:7000: OK
+192.168.1.22:7000: OK
+192.168.1.21:7001: READONLY You can't write against a read only slave.
+192.168.1.22:7001: READONLY You can't write against a read only slave.
+192.168.1.23:7001: READONLY You can't write against a read only slave.
+192.168.1.23:7000: OK
 ```
 
 
@@ -400,14 +400,14 @@ sys     0m5.777s
 
 13. Очищаю БД:
 ```
-192.168.1.21:7000> flushall
-OK
-
-192.168.1.22:7000> flushall
-OK
-
-192.168.1.23:7000> flushall
-OK
+[root@lab1 ~]# redis-trib call 192.168.1.21:7000 FLUSHALL
+>>> Calling FLUSHALL
+192.168.1.21:7000: OK
+192.168.1.22:7000: OK
+192.168.1.21:7001: READONLY You can't write against a read only slave.
+192.168.1.22:7001: READONLY You can't write against a read only slave.
+192.168.1.23:7001: READONLY You can't write against a read only slave.
+192.168.1.23:7000: OK
 ```
 
 
@@ -466,12 +466,12 @@ sys     0m6.003s
 
 17. Очищаю БД:
 ```
-192.168.1.21:7000> flushall
-OK
-
-192.168.1.22:7000> flushall
-OK
-
-192.168.1.23:7000> flushall
-OK
+[root@lab1 ~]# redis-trib call 192.168.1.21:7000 FLUSHALL
+>>> Calling FLUSHALL
+192.168.1.21:7000: OK
+192.168.1.22:7000: OK
+192.168.1.21:7001: READONLY You can't write against a read only slave.
+192.168.1.22:7001: READONLY You can't write against a read only slave.
+192.168.1.23:7001: READONLY You can't write against a read only slave.
+192.168.1.23:7000: OK
 ```
