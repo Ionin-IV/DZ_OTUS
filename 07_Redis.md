@@ -262,7 +262,7 @@ while read COMM; do
 
 redis-cli -c -h 192.168.1.21 -p 7000 $COMM
 
-done <lines.redis
+done <lines.txt
 ```
 Время выполнения загрузки (время выполнения загрузки получаю командой time):
 ```
@@ -370,7 +370,7 @@ while read COMM; do
 
 redis-cli -c -h 192.168.1.21 -p 7000 $COMM
 
-done <zadd.redis
+done <zadd.txt
 ```
 Время выполнения загрузки:
 ```
@@ -435,7 +435,7 @@ while read COMM; do
 
 redis-cli -c -h 192.168.1.21 -p 7000 $COMM
 
-done <lists.redis
+done <lists.txt
 ```
 Время выполнения загрузки:
 ```
