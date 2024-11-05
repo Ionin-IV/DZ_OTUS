@@ -289,7 +289,7 @@ mkdir -p /data/consul /etc/consul.d/consul /var/log/consul
 chown -R consul:consul /data/consul /etc/consul.d /var/log/consul
 ```
 
-4. Создаю конфигруационный файл /etc/consul.d/consul.json со следующим содержимым:
+4. Создаю конфигруационный файл /etc/consul.d/consul.json со следующим содержимым (параметр node_name на каждом узле свой):
 ```
 {
   "datacenter": "dc1",
@@ -298,7 +298,7 @@ chown -R consul:consul /data/consul /etc/consul.d /var/log/consul
   "ui_config": { "enabled": true },
   "data_dir": "/data/consul",
   "addresses": { "http" : "0.0.0.0" },
-  "retry_join":["lab2","lab3"],
+  "retry_join":["lab1","lab2","lab3"],
   "log_file": "/var/log/consul/consul.log"
 }
 ```
