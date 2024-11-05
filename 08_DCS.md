@@ -272,3 +272,144 @@ systemctl start etcd
 value3
 ```
 
+### Разворачивание и тестирование кластера Consul
+
+#### На каждом из трёх серверов:
+
+1. Скачиваю дистрибутив, распаковываю архив и копирую исполняемый файл consul в директорию /usr/bin
+
+2. Создаю пользователя consul:
+```
+adduser consul --shell=/bin/false - no-create-home
+```
+
+3. Создаю необходимые директории и задаю им права:
+```
+mkdir -p /data/consul /etc/consul.d/consul /var/log/consul
+chown -R consul:consul /data/consul /etc/consul.d /var/log/consul
+```
+
+4. Создаю конфигруационный файл /etc/consul.d/consul.json со следующим содержимым:
+```
+{
+  "datacenter": "dc1",
+  "node_name": "lab1",
+  "server": true,
+  "ui_config": { "enabled": true },
+  "data_dir": "/data/consul",
+  "addresses": { "http" : "0.0.0.0" },
+  "retry_join":["lab2","lab3"],
+  "log_file": "/var/log/consul/consul.log"
+}
+```
+
+5. Создаю конфигурационный файл сервиса /etc/systemd/system/consul.service со следующим содержимым:
+```
+[Unit]
+Description="HashiCorp Consul"
+Requires=network-online.target
+After=network-online.target
+ConditionFileNotEmpty=/etc/consul.d/consul.json
+[Service]
+User=consul
+Group=consul
+ExecStart=/usr/bin/consul agent -config-dir=/etc/consul.d/
+ExecReload=/usr/bin/consul reload
+ExecStop=/usr/bin/consul leave
+KillMode=process
+Restart=on-failure
+LimitNOFILE=65536
+[Install]
+WantedBy=multi-user.target
+```
+
+6. Перечитываю конфигруационный файлы сервисов, включаю автозапуск сервиса consyl и запускаю его:
+```
+systemctl daemon-reload
+systemctl enable consul
+systemctl start consul
+```
+
+7. Проверяю, что кластер запустился и нормально работает:
+```
+[root@lab1 ~]# consul members
+Node  Address            Status  Type    Build   Protocol  DC   Partition  Segment
+lab1  192.168.1.21:8301  alive   server  1.20.1  2         dc1  default    <all>
+lab2  192.168.1.22:8301  alive   server  1.20.1  2         dc1  default    <all>
+lab3  192.168.1.23:8301  alive   server  1.20.1  2         dc1  default    <all>
+
+[root@lab1 ~]# consul operator raft list-peers
+Node  ID                                    Address            State     Voter  RaftProtocol  Commit Index  Trails Leader By
+lab1  c6c3f459-547f-6b47-e640-d1364151d4cd  192.168.1.21:8300  leader    true   3             937           -
+lab3  90cad6fb-9b4c-d86d-8ef2-91dff3994803  192.168.1.23:8300  follower  true   3             937           0 commits
+lab2  c0f0f3a3-bb7a-cb7e-bb02-33e6ea20c78c  192.168.1.22:8300  follower  false  3             937           0 commits
+```
+
+8. Добавляю в БД три ключа:
+```
+[root@lab1 ~]# consul kv put key1 value1
+Success! Data written to: key1
+
+[root@lab1 ~]# consul kv put key2 value2
+Success! Data written to: key2
+
+[root@lab1 ~]# consul kv put key3 value3
+Success! Data written to: key3
+```
+
+9. Проверяю, что ключи добавились в кластер и доступны на других его узлах:
+```
+[root@lab2 ~]# consul kv get key1
+value1
+```
+
+10. Останавливаю сервис consul на первом узле, являющемся лидером на данный момент:
+```
+[root@lab1 ~]# systemctl stop consul
+```
+
+11. Проверяю, что сервер lab1 "выпал" из кластера, а лидером стал другой узел:
+```
+[root@lab2 ~]# consul members
+Node  Address            Status  Type    Build   Protocol  DC   Partition  Segment
+lab1  192.168.1.21:8301  left    server  1.20.1  2         dc1  default    <all>
+lab2  192.168.1.22:8301  alive   server  1.20.1  2         dc1  default    <all>
+lab3  192.168.1.23:8301  alive   server  1.20.1  2         dc1  default    <all>
+
+[root@lab2 ~]# consul operator raft list-peers
+Node  ID                                    Address            State     Voter  RaftProtocol  Commit Index  Trails Leader By
+lab3  90cad6fb-9b4c-d86d-8ef2-91dff3994803  192.168.1.23:8300  leader    true   3             959           -
+lab2  c0f0f3a3-bb7a-cb7e-bb02-33e6ea20c78c  192.168.1.22:8300  follower  true   3             959           0 commits
+```
+
+12. Добавляю в БД ещё один ключ и проверяю, что он записался:
+```
+[root@lab2 ~]# consul kv put key4 value4
+Success! Data written to: key4
+
+[root@lab2 ~]# consul kv get key4
+value4
+```
+
+13. Запускаю сервис consul на первом узле:
+```
+[root@lab1 ~]# systemctl start consul
+```
+
+14. Проверяю, что узел подключился к кластеру, и в него дописался добавленный ключ:
+```
+[root@lab1 ~]# consul members
+Node  Address            Status  Type    Build   Protocol  DC   Partition  Segment
+lab1  192.168.1.21:8301  alive   server  1.20.1  2         dc1  default    <all>
+lab2  192.168.1.22:8301  alive   server  1.20.1  2         dc1  default    <all>
+lab3  192.168.1.23:8301  alive   server  1.20.1  2         dc1  default    <all>
+
+[root@lab1 ~]# consul operator raft list-peers
+Node  ID                                    Address            State     Voter  RaftProtocol  Commit Index  Trails Leader By
+lab3  90cad6fb-9b4c-d86d-8ef2-91dff3994803  192.168.1.23:8300  leader    true   3             976           -
+lab2  c0f0f3a3-bb7a-cb7e-bb02-33e6ea20c78c  192.168.1.22:8300  follower  true   3             976           0 commits
+lab1  c6c3f459-547f-6b47-e640-d1364151d4cd  192.168.1.21:8300  follower  true   3             976           0 commits
+
+[root@lab1 ~]# consul kv get key4
+value4
+```
