@@ -132,7 +132,6 @@ POST /otus-lab/_doc
 ```
 POST /otus-lab/_doc
 {
-  "id": 3,
   "content": "мама мыла раму"
 }
 ```
