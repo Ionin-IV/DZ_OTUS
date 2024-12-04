@@ -53,7 +53,7 @@ bin/kafka-console-consumer.sh --topic lab-topic --group consumer1 --from-beginni
 bin/kafka-console-consumer.sh --topic lab-topic --group consumer1 --from-beginning --bootstrap-server localhost:9092
 ```
 
-3. Отправляю в Kafka несколько пар "ключ:значение":
+3. Отправляю в Kafka несколько пар "ключ-значение":
 ```
 bin/kafka-console-producer.sh --topic lab-topic --property "parse.key=true" --property "key.separator=:" --bootstrap-server localhost:9092
 >key1:val1
