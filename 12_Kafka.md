@@ -97,7 +97,7 @@ val6
 bin/kafka-topics.sh --create --topic lab-py-topic --bootstrap-server localhost:9092
 ```
 
-2. Создаю скрипт загрузки данных prod.py ([ссылка на скрипт](https://github.com/Ionin-IV/DZ_OTUS/blob/main/Kafka/prod.py)) со следующим содержимым:
+2. Создаю скрипт загрузки данных prod.py ([ссылка на скрипт](https://github.com/Ionin-IV/DZ_OTUS/blob/main/12_Kafka/prod.py)) со следующим содержимым:
 ```
 import json
 from confluent_kafka import Producer
@@ -130,7 +130,7 @@ producer.poll(0)
 producer.flush()
 ```
 
-3. Создаю скрипт получения данных cons.py ([ссылка на скрипт](https://github.com/Ionin-IV/DZ_OTUS/blob/main/Kafka/cons.py)) со следующим содержимым:
+3. Создаю скрипт получения данных cons.py ([ссылка на скрипт](https://github.com/Ionin-IV/DZ_OTUS/blob/main/12_Kafka/cons.py)) со следующим содержимым:
 ```
 import json
 from confluent_kafka import Consumer, KafkaException
