@@ -90,3 +90,152 @@ val6
 
 ### Загрузка и получение данных программно
 
+Для работы с данными выбираю скрипты, написанные на Python.
+
+1. Создаю топик lab-py-topic:
+```
+bin/kafka-topics.sh --create --topic lab-py-topic --bootstrap-server localhost:9092
+```
+
+2. Создаю скрипт загрузки данных prod.py со следующим содержимым:
+```
+import json
+from confluent_kafka import Producer
+
+conf = {
+    'bootstrap.servers': 'localhost:9092'
+}
+
+producer = Producer(conf)
+
+def delivery_report(err, msg):
+    if err is not None:
+        print(f'Ошибка доставки сообщения: {err}')
+    else:
+        print(f'Сообщение доставлено в {msg.topic()} [{msg.partition()}]')
+
+topic = 'lab-py-topic'
+
+f_json = open('/root/kafka_2.13-3.9.0/test.json')
+
+data = json.load(f_json)
+
+for line in data:
+
+        producer.produce(topic, value=json.dumps(line), callback=delivery_report)
+
+f_json.close()
+
+producer.poll(0)
+producer.flush()
+```
+
+3. Создаю скрипт получения данных cons.py со следующим содержимым:
+```
+import json
+from confluent_kafka import Consumer, KafkaException
+
+conf = {
+    'bootstrap.servers': 'localhost:9092',
+    'group.id': 'consumer1',
+    'auto.offset.reset': 'earliest'
+}
+
+consumer = Consumer(conf)
+
+topic = 'lab-py-topic'
+consumer.subscribe([topic])
+
+try:
+    while True:
+        msg = consumer.poll(timeout=1.0)
+        if msg is None:
+            continue
+        if msg.error():
+            if msg.error().code() == KafkaError._PARTITION_EOF:
+                print(f'Конец раздела {msg.topic()} [{msg.partition()}]')
+            elif msg.error():
+                raise KafkaException(msg.error())
+        else:
+            data = json.loads(msg.value().decode('utf-8'))
+            print(f'Получено сообщение: {data}')
+finally:
+    consumer.close()
+```
+
+4. Для загрузки, создаю JSON-файл test.json со следующим содержимым:
+```
+[
+{ "Key1": "Value1" },
+{ "Key2": "Value2" },
+{ "Key3": "Value3" }
+]
+```
+
+5. В одном окне терминала запускаю срипт получения данных командой:
+```
+python3 cons.py
+```
+
+6. В другом окне терминала загружаю данные JSON-файла:
+```
+python3 prod.py
+Сообщение доставлено в lab-py-topic [0]
+Сообщение доставлено в lab-py-topic [0]
+Сообщение доставлено в lab-py-topic [0]
+```
+
+7. Скрипт приёма данных получил их:
+```
+Получено сообщение: {'Key1': 'Value1'}
+Получено сообщение: {'Key2': 'Value2'}
+Получено сообщение: {'Key3': 'Value3'}
+```
+
+8. Перезапускаю скрипт приёма данных, и он опять получает те же данные, т.к. была выставлена настройка загрузки данных с начала ('auto.offset.reset': 'earliest'):
+```
+Получено сообщение: {'Key1': 'Value1'}
+Получено сообщение: {'Key2': 'Value2'}
+Получено сообщение: {'Key3': 'Value3'}
+```
+
+9. Меняю содержимое JSON-файла и отправляю его в Kafka:
+
+Новое содержимое JSON-файла:
+```
+[
+{ "Key4": "Value4" },
+{ "Key5": "Value5" },
+{ "Key6": "Value6" }
+]
+```
+
+На стороне скрипта приёма добавились новые данные:
+```
+Получено сообщение: {'Key1': 'Value1'}
+Получено сообщение: {'Key2': 'Value2'}
+Получено сообщение: {'Key3': 'Value3'}
+Получено сообщение: {'Key4': 'Value4'}
+Получено сообщение: {'Key5': 'Value5'}
+Получено сообщение: {'Key6': 'Value6'}
+```
+
+10. Останвливаю стрипт приёма данных, меняю в нём настройку старта получения данных на "latest", и запускаю скрипт снова. В этот раз старые данные не загружаются.
+
+11. Меняю содержимое JSON-файла и отправляю его в Kafka:
+
+Новое содержимое JSON-файла:
+```
+[
+{ "Key7": "Value7" },
+{ "Key8": "Value8" },
+{ "Key9": "Value9" }
+]
+```
+
+На стороне скрипта приёма появились только новые данные:
+```
+Получено сообщение: {'Key7': 'Value7'}
+Получено сообщение: {'Key8': 'Value8'}
+Получено сообщение: {'Key9': 'Value9'}
+```
