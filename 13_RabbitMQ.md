@@ -269,6 +269,7 @@ Sent key3: value3
 
 5. Отправленные сообщения получены скриптом:
 ```
+# python3 receive.py
 Received key1: value1
 Done
 Received key2: value2
