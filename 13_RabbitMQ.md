@@ -252,7 +252,7 @@ message = channel.basic_consume(queue='queue1', on_message_callback=callback, au
 channel.start_consuming()
 ```
 
-3. Запускаю скрипт получения сообщений:
+3. Запускаю скрипт получения сообщений, ожидающий новые сообщения:
 ```
 # python3 receive.py
 ```
