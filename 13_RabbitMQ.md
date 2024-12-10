@@ -167,42 +167,42 @@ rabbitmqctl set_permissions --vhost '/' 'admin' '.*' '.*' '.*'
 
 1. Создаю exchange с именем otus_lab и типом маршрутизации fanout:
 
-![alt text](./13_RabbitMQ/01.jpg)
+<kbd>![alt text](./13_RabbitMQ/01.jpg)</kbd>
 
 Exchange создан:
 
-![alt text](./13_RabbitMQ/02.jpg)
+<kbd>![alt text](./13_RabbitMQ/02.jpg)</kbd>
 
 2. Создаю очередь queue1:
 
-![alt text](./13_RabbitMQ/03.jpg)
+<kbd>![alt text](./13_RabbitMQ/03.jpg)</kbd>
 
 Очередь создана:
 
-![alt text](./13_RabbitMQ/04.jpg)
+<kbd>![alt text](./13_RabbitMQ/04.jpg)</kbd>
 
 3. Привязываю exchange к очереди:
 
-![alt text](./13_RabbitMQ/05.jpg)
+<kbd>![alt text](./13_RabbitMQ/05.jpg)</kbd>
 
 Exchange привязан к очереди:
 
-![alt text](./13_RabbitMQ/06.jpg)
+<kbd>![alt text](./13_RabbitMQ/06.jpg)</kbd>
 
 4. Публикую три сообщения в виде пары ключ/значение:
 - key1 - value1
 - key2 - value2
 - key3 - value3
 
-![alt text](./13_RabbitMQ/07.jpg)
+<kbd>![alt text](./13_RabbitMQ/07.jpg)</kbd>
 
 5. Получаю три опубликованных сообщения, помечая их полученными:
 
-![alt text](./13_RabbitMQ/08.jpg)
+<kbd>![alt text](./13_RabbitMQ/08.jpg)</kbd>
 
 Сообщения успешно получены:
 
-![alt text](./13_RabbitMQ/09.jpg)
+<kbd>![alt text](./13_RabbitMQ/09.jpg)</kbd>
 
 ### Добавление и получение данных программно
 
