@@ -12,3 +12,194 @@
 Для пункта 4 приложите ссылку на репозитарий на гитхабе с исходным кодом.
 
 ## Выполнение задания
+
+### Установка RabbitMQ на ВМ
+
+1. Импортирую ключи:
+```
+rpm --import 'https://github.com/rabbitmq/signing-keys/releases/download/3.0/rabbitmq-release-signing-key.asc'
+rpm --import 'https://github.com/rabbitmq/signing-keys/releases/download/3.0/cloudsmith.rabbitmq-erlang.E495BB49CC4BBE5B.key'
+rpm --import 'https://github.com/rabbitmq/signing-keys/releases/download/3.0/cloudsmith.rabbitmq-server.9F4587F226208342.key'
+```
+
+2. Прописываю репозитории в файле /etc/yum.repos.d/rabbitmq.repo со следующим содержимым:
+```
+##
+## Zero dependency Erlang RPM
+##
+
+[modern-erlang]
+name=modern-erlang-el8
+# Use a set of mirrors maintained by the RabbitMQ core team.
+# The mirrors have significantly higher bandwidth quotas.
+baseurl=https://yum1.rabbitmq.com/erlang/el/8/$basearch
+        https://yum2.rabbitmq.com/erlang/el/8/$basearch
+repo_gpgcheck=1
+enabled=1
+gpgkey=https://github.com/rabbitmq/signing-keys/releases/download/3.0/cloudsmith.rabbitmq-erlang.E495BB49CC4BBE5B.key
+gpgcheck=1
+sslverify=1
+sslcacert=/etc/pki/tls/certs/ca-bundle.crt
+metadata_expire=300
+pkg_gpgcheck=1
+autorefresh=1
+type=rpm-md
+
+[modern-erlang-noarch]
+name=modern-erlang-el8-noarch
+# Use a set of mirrors maintained by the RabbitMQ core team.
+# The mirrors have significantly higher bandwidth quotas.
+baseurl=https://yum1.rabbitmq.com/erlang/el/8/noarch
+        https://yum2.rabbitmq.com/erlang/el/8/noarch
+repo_gpgcheck=1
+enabled=1
+gpgkey=https://github.com/rabbitmq/signing-keys/releases/download/3.0/cloudsmith.rabbitmq-erlang.E495BB49CC4BBE5B.key
+       https://github.com/rabbitmq/signing-keys/releases/download/3.0/rabbitmq-release-signing-key.asc
+gpgcheck=1
+sslverify=1
+sslcacert=/etc/pki/tls/certs/ca-bundle.crt
+metadata_expire=300
+pkg_gpgcheck=1
+autorefresh=1
+type=rpm-md
+
+[modern-erlang-source]
+name=modern-erlang-el8-source
+# Use a set of mirrors maintained by the RabbitMQ core team.
+# The mirrors have significantly higher bandwidth quotas.
+baseurl=https://yum1.rabbitmq.com/erlang/el/8/SRPMS
+        https://yum2.rabbitmq.com/erlang/el/8/SRPMS
+repo_gpgcheck=1
+enabled=1
+gpgkey=https://github.com/rabbitmq/signing-keys/releases/download/3.0/cloudsmith.rabbitmq-erlang.E495BB49CC4BBE5B.key
+       https://github.com/rabbitmq/signing-keys/releases/download/3.0/rabbitmq-release-signing-key.asc
+gpgcheck=1
+sslverify=1
+sslcacert=/etc/pki/tls/certs/ca-bundle.crt
+metadata_expire=300
+pkg_gpgcheck=1
+autorefresh=1
+
+
+##
+## RabbitMQ Server
+##
+
+[rabbitmq-el8]
+name=rabbitmq-el8
+baseurl=https://yum2.rabbitmq.com/rabbitmq/el/8/$basearch
+        https://yum1.rabbitmq.com/rabbitmq/el/8/$basearch
+repo_gpgcheck=1
+enabled=1
+# Cloudsmith's repository key and RabbitMQ package signing key
+gpgkey=https://github.com/rabbitmq/signing-keys/releases/download/3.0/cloudsmith.rabbitmq-server.9F4587F226208342.key
+       https://github.com/rabbitmq/signing-keys/releases/download/3.0/rabbitmq-release-signing-key.asc
+gpgcheck=1
+sslverify=1
+sslcacert=/etc/pki/tls/certs/ca-bundle.crt
+metadata_expire=300
+pkg_gpgcheck=1
+autorefresh=1
+type=rpm-md
+
+[rabbitmq-el8-noarch]
+name=rabbitmq-el8-noarch
+baseurl=https://yum2.rabbitmq.com/rabbitmq/el/8/noarch
+        https://yum1.rabbitmq.com/rabbitmq/el/8/noarch
+repo_gpgcheck=1
+enabled=1
+# Cloudsmith's repository key and RabbitMQ package signing key
+gpgkey=https://github.com/rabbitmq/signing-keys/releases/download/3.0/cloudsmith.rabbitmq-server.9F4587F226208342.key
+       https://github.com/rabbitmq/signing-keys/releases/download/3.0/rabbitmq-release-signing-key.asc
+gpgcheck=1
+sslverify=1
+sslcacert=/etc/pki/tls/certs/ca-bundle.crt
+metadata_expire=300
+pkg_gpgcheck=1
+autorefresh=1
+type=rpm-md
+
+[rabbitmq-el8-source]
+name=rabbitmq-el8-source
+baseurl=https://yum2.rabbitmq.com/rabbitmq/el/8/SRPMS
+        https://yum1.rabbitmq.com/rabbitmq/el/8/SRPMS
+repo_gpgcheck=1
+enabled=1
+gpgkey=https://github.com/rabbitmq/signing-keys/releases/download/3.0/cloudsmith.rabbitmq-server.9F4587F226208342.key
+gpgcheck=0
+sslverify=1
+sslcacert=/etc/pki/tls/certs/ca-bundle.crt
+metadata_expire=300
+pkg_gpgcheck=1
+autorefresh=1
+type=rpm-md
+```
+
+3. Устанавливаю пакет socat:
+```
+yum install socat
+```
+
+4. Устанавливаю пакеты RabbitMQ и Erlang:
+```
+yum install erlang rabbitmq-server
+```
+
+5. Включаю автозапуск и запускаю сервис RabbitMQ:
+```
+systemctl enable rabbitmq-server
+systemctl start rabbitmq-server
+```
+
+6. Включаю web-консоль RabbitMQ:
+```
+rabbitmq-plugins enable rabbitmq_management
+```
+
+7. Для работы в web-консоли, создаю в RabbitMQ пользователя с правами администратора:
+```
+rabbitmqctl add_user 'admin' 'admin12345'
+rabbitmqctl set_user_tags 'admin' 'administrator'
+rabbitmqctl set_permissions --vhost '/' 'admin' '.*' '.*' '.*'
+```
+
+### Добавление и получение данных через web-консоль
+
+1. Создаю exchange с именем otus_lab и типом маршрутизации fanout:
+
+![alt text](./13_RabbitMQ/01.jpg)
+
+Exchange создан:
+
+![alt text](./13_RabbitMQ/02.jpg)
+
+2. Создаю очередь queue1:
+
+![alt text](./13_RabbitMQ/03.jpg)
+
+Очередь создана:
+
+![alt text](./13_RabbitMQ/04.jpg)
+
+3. Привязываю exchange к очереди:
+
+![alt text](./13_RabbitMQ/05.jpg)
+
+Exchange привязан к очереди:
+
+![alt text](./13_RabbitMQ/06.jpg)
+
+4. Публикую три сообщения в виде пары ключ/значение:
+- key1 - value1
+- key2 - value2
+- key3 - value3
+
+![alt text](./13_RabbitMQ/07.jpg)
+
+5. Получаю три опубликованных сообщения, помечая их полученными:
+
+![alt text](./13_RabbitMQ/08.jpg)
+
+Сообщения успешно получены:
+
+![alt text](./13_RabbitMQ/09.jpg)
