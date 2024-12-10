@@ -206,4 +206,72 @@ Exchange привязан к очереди:
 
 ### Добавление и получение данных программно
 
-1. 
+Для работы с данными выбираю скрипты, написанные на Python.
+Будут использоваться созданные ранее exchange и очередь.
+
+1. Создаю скрипт отправки сообщений send.py со следующим содержимым:
+```
+import pika, sys
+
+connection = pika.BlockingConnection(pika.ConnectionParameters(
+               'localhost'))
+channel = connection.channel()
+
+channel.queue_declare(queue='queue1', durable=True)
+
+routing_key = sys.argv[1]
+body = sys.argv[2]
+
+channel.basic_publish(exchange='otus_lab',
+        routing_key=routing_key,
+        body=body)
+
+print(f"Sent {routing_key}: {body}")
+
+connection.close()
+```
+
+2. Создаю скрипт получения сообщений receive.py со следующим содержимым:
+```
+import pika, time
+
+connection = pika.BlockingConnection(pika.ConnectionParameters(
+               'localhost'))
+channel = connection.channel()
+
+channel.queue_declare(queue='queue1', durable=True)
+
+def callback(ch, method, properties, body):
+    print(f"Received {method.routing_key}: {body.decode()}")
+    time.sleep(body.count(b'.'))
+    print("Done")
+
+message = channel.basic_consume(queue='queue1', on_message_callback=callback, auto_ack=False)
+
+channel.start_consuming()
+```
+
+3. Запускаю скрипт получения сообщений:
+```
+# python3 receive.py
+```
+
+4. Отправляю три сообщения в виде пары ключ/значение:
+```
+# python3 send.py key1 value1
+Sent key1: value1
+# python3 send.py key2 value2
+Sent key2: value2
+# python3 send.py key3 value3
+Sent key3: value3
+```
+
+5. Отправленные сообщения получены скриптом:
+```
+Received key1: value1
+Done
+Received key2: value2
+Done
+Received key3: value3
+Done
+```
