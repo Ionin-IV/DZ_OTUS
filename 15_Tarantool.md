@@ -224,3 +224,45 @@ create_db:instance001> box.space.avia_tickets.index.secondary2:min('2025-01-01')
 
 ### Функция на Lua
 
+Создаю функцию, выводящую список рейсов с минимальной стоимостью билета меньше 3000:
+```
+create_db:instance001> function less_3000()
+for _, tuple in box.space.avia_tickets.index.secondary2:pairs() do
+             if (tuple[6] < 3000) then box.session.push(tuple) end
+end
+end
+---
+...
+```
+
+Запускаю созданную функцию и получаю результат:
+```
+create_db:instance001> function less_3000()
+- 1
+- Aeroflot
+- "2024-12-31"
+- Moscow
+- Saint Petersburg
+- 1500
+
+- 6
+- Pobeda
+- "2025-01-01"
+- Magnitogorsk
+- Khabarovsk
+- 2500
+
+- 11
+- Gazprom Avia
+- "2025-01-02"
+- Petrozavodsk
+- Samara
+- 2000
+
+---
+...
+```
+
+ПРИМЕЧАНИЕ: для вывода полученныйх значений, пришлось применить функцию box.session.push(tuple), потому что:
+- функция print(), при работе с pairs(), выводит результаты не в консоль tt, а в stdout ( https://github.com/tarantool/tarantool/issues/1986 );
+- return в цикле выводит только первое значение.
