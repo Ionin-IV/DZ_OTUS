@@ -263,6 +263,6 @@ create_db:instance001> function less_3000()
 ...
 ```
 
-ПРИМЕЧАНИЕ: для вывода полученныйх значений, пришлось применить функцию box.session.push(tuple), потому что:
-- функция print(), при работе с pairs(), выводит результаты не в консоль tt, а в stdout ( https://github.com/tarantool/tarantool/issues/1986 );
+__ПРИМЕЧАНИЕ:__ для вывода полученныйх значений, пришлось применить функцию box.session.push(), потому что:
+- функция print() выводит результаты не в консоль tt, а в stdout ( https://github.com/tarantool/tarantool/issues/1986 );
 - return в цикле выводит только первое значение.
