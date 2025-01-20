@@ -17,23 +17,23 @@
 
 2. Создаю кластер MongoDB с внешним доступом:
 
-<kbd>![alt text](./16_Clous/01.jpg)</kbd>
+<kbd>![alt text](./16_Cloud/01.jpg)</kbd>
 
-<kbd>![alt text](./16_Clous/02.jpg)</kbd>
+<kbd>![alt text](./16_Cloud/02.jpg)</kbd>
 
-<kbd>![alt text](./16_Clous/06.jpg)</kbd>
+<kbd>![alt text](./16_Cloud/06.jpg)</kbd>
 
-<kbd>![alt text](./16_Clous/08.jpg)</kbd>
+<kbd>![alt text](./16_Cloud/08.jpg)</kbd>
 
-<kbd>![alt text](./16_Clous/09.jpg)</kbd>
+<kbd>![alt text](./16_Cloud/09.jpg)</kbd>
 
 3. Добавляю в профиль безопасности внешний доступ к БД по порту 27018:
 
-<kbd>![alt text](./16_Clous/03.jpg)</kbd>
+<kbd>![alt text](./16_Cloud/03.jpg)</kbd>
 
-<kbd>![alt text](./16_Clous/04.jpg)</kbd>
+<kbd>![alt text](./16_Cloud/04.jpg)</kbd>
 
-<kbd>![alt text](./16_Clous/05.jpg)</kbd>
+<kbd>![alt text](./16_Cloud/05.jpg)</kbd>
 
 4. Копирую SSL-сертификат:
 
