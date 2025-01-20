@@ -92,7 +92,40 @@ You can opt-out by running the disableTelemetry() command.
 ------
 ```
 
-6. Загружаю тестовые данные в БД:
+
+### Создание БД в VK Cloud
+
+1. Регистрируюсь в VK Cloud
+
+2. Создаю экземпляр БД с внешним IP:
+
+<kbd>![alt text](./16_Cloud/10.jpg)</kbd>
+
+<kbd>![alt text](./16_Cloud/11.jpg)</kbd>
+
+<kbd>![alt text](./16_Cloud/12.jpg)</kbd>
+
+<kbd>![alt text](./16_Cloud/13.jpg)</kbd>
+
+<kbd>![alt text](./16_Cloud/14.jpg)</kbd>
+
+3. Проверяю, что есть подключение к созданной БД с клиента на моём рабочем месте:
+
+```
+[root@rhel8 ~]# mongosh --host '212.233.95.154:27017' --username user1 --password '*****' db1
+Current Mongosh Log ID: 678a282ac36cda1ef4544ca6
+Connecting to:          mongodb://<credentials>@212.233.95.154:27017/db1?directConnection=true&appName=mongosh+2.3.8
+Using MongoDB:          4.0.28
+Using Mongosh:          2.3.8
+
+For mongosh info see: https://www.mongodb.com/docs/mongodb-shell/
+```
+
+### Тестирование и сравнение скорости запросов в БД
+
+1. Загружаю тестовые данные:
+
+- в Yandex Cloud:
 
 ```
 [root@host ~]# mongoimport --db=db1 --collection=operations --file=1.json --ssl --tlsInsecure --sslCAFile ~/.mongodb/root.crt --host 'rc1d-2rwigtopclqpgwnn.mdb.yandexcloud.net:27018' --username user1 --password '*****'
@@ -135,36 +168,7 @@ You can opt-out by running the disableTelemetry() command.
 2025-01-17T11:00:17.116+0300    1000000 document(s) imported successfully. 0 document(s) failed to import.
 ```
 
-
-### Создание БД в VK Cloud
-
-1. Регистрируюсь в VK Cloud
-
-2. Создаю экземпляр БД с внешним IP:
-
-<kbd>![alt text](./16_Cloud/10.jpg)</kbd>
-
-<kbd>![alt text](./16_Cloud/11.jpg)</kbd>
-
-<kbd>![alt text](./16_Cloud/12.jpg)</kbd>
-
-<kbd>![alt text](./16_Cloud/13.jpg)</kbd>
-
-<kbd>![alt text](./16_Cloud/14.jpg)</kbd>
-
-3. Проверяю, что есть подключение к созданной БД с клиента на моём рабочем месте:
-
-```
-[root@rhel8 ~]# mongosh --host '212.233.95.154:27017' --username user1 --password '*****' db1
-Current Mongosh Log ID: 678a282ac36cda1ef4544ca6
-Connecting to:          mongodb://<credentials>@212.233.95.154:27017/db1?directConnection=true&appName=mongosh+2.3.8
-Using MongoDB:          4.0.28
-Using Mongosh:          2.3.8
-
-For mongosh info see: https://www.mongodb.com/docs/mongodb-shell/
-```
-
-4. Загружаю тестовые данные в БД:
+- в VK Cloud:
 
 ```
 [root@host ~]# mongoimport --db=db1 --collection=operations --file=1.json --host '212.233.95.154:27017' --username user1 --password '*****'
@@ -202,10 +206,9 @@ For mongosh info see: https://www.mongodb.com/docs/mongodb-shell/
 2025-01-17T12:54:48.534+0300    1000000 document(s) imported successfully. 0 document(s) failed to import.
 ```
 
+__РЕЗУЛЬТАТ:__ загрузка в БД выполнилась почти за одно и то же время (01:43 и 01:33, соответственно).
 
-### Тестирование и сравнение скорости запросов в БД
-
-1. Получаю план запроса:
+2. Получаю план запроса:
 
 - в Yandex Cloud:
 
@@ -379,7 +382,7 @@ db1> db.operations.find( { $and: [ { name: "Ivan"}, { date: { $gte: "2025-01-15 
 
 __РЕЗУЛЬТАТ:__ в VK запрос выполняется быстрей (executionTimeMillis 462 против 980).
 
-2. Добавляю индекс:
+3. Добавляю индекс:
 
 - в Yandex Cloud:
 
@@ -395,7 +398,7 @@ db1> db.operations.createIndex( { "date": 1 , "name": 1, "operation": 1 } )
 date_1_name_1_operation_1
 ```
 
-3. Проверяю план запроса после создания индекса:
+4. Проверяю план запроса после создания индекса:
 
 - в Yandex Cloud:
 
