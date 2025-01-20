@@ -380,7 +380,7 @@ db1> db.operations.find( { $and: [ { name: "Ivan"}, { date: { $gte: "2025-01-15 
 }
 ```
 
-__РЕЗУЛЬТАТ:__ в VK запрос выполняется быстрей (executionTimeMillis 462 против 980).
+__РЕЗУЛЬТАТ:__ в yandex Cloud запрос выполняется медленней (executionTimeMillis 980 против 462, соответственно).
 
 3. Добавляю индекс:
 
