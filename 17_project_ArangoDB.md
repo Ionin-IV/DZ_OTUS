@@ -115,6 +115,62 @@ cat order_to_prods_04.json >> order_to_prods.json
 cat order_to_prods_05.json >> order_to_prods.json
 ```
 
+Примеры полученных данных:
+
+* orders_all.json
+```
+{ "order_id": 1, "customer": "Dmitry", "date": "2023-07-24 23:11:00", "price": 945, "shop": "Kuper", "city": "Kostroma", "prod": "AutoGoods" }
+{ "order_id": 2, "customer": "Aleksey", "date": "2023-07-24 23:12:00", "price": 554, "shop": "YandexMarket", "city": "Tver", "prod": "Electronics" }
+{ "order_id": 3, "customer": "Victor", "date": "2023-07-24 23:13:00", "price": 748, "shop": "Ozon", "city": "Moscow", "prod": "Books" }
+{ "order_id": 4, "customer": "Sergey", "date": "2023-07-24 23:14:00", "price": 621, "shop": "WB", "city": "Yaroslavl", "prod": "Cloth" }
+{ "order_id": 5, "customer": "Petr", "date": "2023-07-24 23:15:00", "price": 414, "shop": "Kuper", "city": "Ryazan", "prod": "Electronics" }
+```
+
+* orders.json
+```
+{ "_key": "1", "order_id": 1, "date": "2023-07-24 23:11:00", "price": 945 }
+{ "_key": "2", "order_id": 2, "date": "2023-07-24 23:12:00", "price": 554 }
+{ "_key": "3", "order_id": 3, "date": "2023-07-24 23:13:00", "price": 748 }
+{ "_key": "4", "order_id": 4, "date": "2023-07-24 23:14:00", "price": 621 }
+{ "_key": "5", "order_id": 5, "date": "2023-07-24 23:15:00", "price": 414 }
+```
+
+* customer_to_order.json
+```
+{ "_from": "customers/Dmitry", "_to": "orders/1" }
+{ "_from": "customers/Aleksey", "_to": "orders/2" }
+{ "_from": "customers/Victor", "_to": "orders/3" }
+{ "_from": "customers/Sergey", "_to": "orders/4" }
+{ "_from": "customers/Petr", "_to": "orders/5" }
+```
+
+* order_to_shop.json
+```
+{ "_from": "orders/1", "_to": "shops/Kuper" }
+{ "_from": "orders/2", "_to": "shops/YandexMarket" }
+{ "_from": "orders/3", "_to": "shops/Ozon" }
+{ "_from": "orders/4", "_to": "shops/WB" }
+{ "_from": "orders/5", "_to": "shops/Kuper" }
+```
+
+* order_to_city.json
+```
+{ "_from": "orders/1", "_to": "cities/Kostroma" }
+{ "_from": "orders/2", "_to": "cities/Tver" }
+{ "_from": "orders/3", "_to": "cities/Moscow" }
+{ "_from": "orders/4", "_to": "cities/Yaroslavl" }
+{ "_from": "orders/5", "_to": "cities/Ryazan" }
+```
+
+* order_to_prods.json
+```
+{ "_from": "orders/1", "_to": "prods/AutoGoods" }
+{ "_from": "orders/2", "_to": "prods/Electronics" }
+{ "_from": "orders/3", "_to": "prods/Books" }
+{ "_from": "orders/4", "_to": "prods/Cloth" }
+{ "_from": "orders/5", "_to": "prods/Electronics" }
+```
+
 4. Создаю справочные json-файлы (для загрузки данных в ArangoDB в графовом виде):
 
 * пользователи в customers.json:
