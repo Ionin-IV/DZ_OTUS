@@ -299,7 +299,7 @@ db._createEdgeCollection("order_to_shop");
 
 7. Загружаю сгенерированные в json-файлы данные в созданные колекции:
 ```
-[root@rhel8 ~]# arangoimport --file "/tmp/order_customers.json" --type json --collection "customers" --server.database "test"
+[root@rhel8 ~]# arangoimport --file "customers.json" --type json --collection "customers" --server.database "test"
 Please specify a password:
 2025-01-31T09:54:08.195878Z [6193-1] INFO [11111] {general} This executable uses the GNU C library (glibc), which is licensed under the GNU Lesser General Public License (LGPL), see https://www.gnu.org/copyleft/lesser.html and https://www.gnu.org/licenses/gpl.html
 Connected to ArangoDB 'http+tcp://127.0.0.1:8529, version: 3.12.3 [unknown, ], database: 'test', username: 'root'
@@ -309,7 +309,7 @@ collection:             customers
 overwrite coll. prefix: no
 create:                 no
 create database:        no
-source filename:        /tmp/order_customers.json
+source filename:        customers.json
 file type:              json
 threads:                4
 on duplicate:           error
@@ -324,7 +324,7 @@ updated/replaced: 0
 ignored:          0
 ```
 ```
-[root@rhel8 ~]# arangoimport --file "/tmp/order_shops.json" --type json --collection "shops" --server.database "test"
+[root@rhel8 ~]# arangoimport --file "shops.json" --type json --collection "shops" --server.database "test"
 Please specify a password:
 2025-01-31T09:54:22.115856Z [6200-1] INFO [11111] {general} This executable uses the GNU C library (glibc), which is licensed under the GNU Lesser General Public License (LGPL), see https://www.gnu.org/copyleft/lesser.html and https://www.gnu.org/licenses/gpl.html
 Connected to ArangoDB 'http+tcp://127.0.0.1:8529, version: 3.12.3 [unknown, ], database: 'test', username: 'root'
@@ -334,7 +334,7 @@ collection:             shops
 overwrite coll. prefix: no
 create:                 no
 create database:        no
-source filename:        /tmp/order_shops.json
+source filename:        shops.json
 file type:              json
 threads:                4
 on duplicate:           error
@@ -349,7 +349,7 @@ updated/replaced: 0
 ignored:          0
 ```
 ```
-[root@rhel8 ~]# arangoimport --file "/tmp/order_cities.json" --type json --collection "cities" --server.database "test"
+[root@rhel8 ~]# arangoimport --file "cities.json" --type json --collection "cities" --server.database "test"
 Please specify a password:
 2025-01-31T09:54:32.283785Z [6207-1] INFO [11111] {general} This executable uses the GNU C library (glibc), which is licensed under the GNU Lesser General Public License (LGPL), see https://www.gnu.org/copyleft/lesser.html and https://www.gnu.org/licenses/gpl.html
 Connected to ArangoDB 'http+tcp://127.0.0.1:8529, version: 3.12.3 [unknown, ], database: 'test', username: 'root'
@@ -359,7 +359,7 @@ collection:             cities
 overwrite coll. prefix: no
 create:                 no
 create database:        no
-source filename:        /tmp/order_cities.json
+source filename:        cities.json
 file type:              json
 threads:                4
 on duplicate:           error
@@ -374,7 +374,7 @@ updated/replaced: 0
 ignored:          0
 ```
 ```
-[root@rhel8 ~]# arangoimport --file "/tmp/order_prods.json" --type json --collection "prods" --server.database "test"
+[root@rhel8 ~]# arangoimport --file "prods.json" --type json --collection "prods" --server.database "test"
 Please specify a password:
 2025-01-31T09:54:43.763807Z [6214-1] INFO [11111] {general} This executable uses the GNU C library (glibc), which is licensed under the GNU Lesser General Public License (LGPL), see https://www.gnu.org/copyleft/lesser.html and https://www.gnu.org/licenses/gpl.html
 Connected to ArangoDB 'http+tcp://127.0.0.1:8529, version: 3.12.3 [unknown, ], database: 'test', username: 'root'
@@ -384,7 +384,7 @@ collection:             prods
 overwrite coll. prefix: no
 create:                 no
 create database:        no
-source filename:        /tmp/order_prods.json
+source filename:        prods.json
 file type:              json
 threads:                4
 on duplicate:           error
@@ -399,7 +399,7 @@ updated/replaced: 0
 ignored:          0
 ```
 ```
-[root@rhel8 ~]# arangoimport --file "/tmp/order.json" --type json --collection "orders" --server.database "test"
+[root@rhel8 ~]# arangoimport --file "orders.json" --type json --collection "orders" --server.database "test"
 Please specify a password:
 2025-01-31T09:54:54.203794Z [6221-1] INFO [11111] {general} This executable uses the GNU C library (glibc), which is licensed under the GNU Lesser General Public License (LGPL), see https://www.gnu.org/copyleft/lesser.html and https://www.gnu.org/licenses/gpl.html
 Connected to ArangoDB 'http+tcp://127.0.0.1:8529, version: 3.12.3 [unknown, ], database: 'test', username: 'root'
@@ -409,7 +409,7 @@ collection:             orders
 overwrite coll. prefix: no
 create:                 no
 create database:        no
-source filename:        /tmp/order.json
+source filename:        orders.json
 file type:              json
 threads:                4
 on duplicate:           error
@@ -456,7 +456,7 @@ updated/replaced: 0
 ignored:          0
 ```
 ```
-[root@rhel8 ~]# arangoimport --file "/tmp/customer_to_order.json" --type json --collection "customer_to_order" --server.database "test"
+[root@rhel8 ~]# arangoimport --file "customer_to_order.json" --type json --collection "customer_to_order" --server.database "test"
 Please specify a password:
 2025-01-31T09:55:15.339888Z [6619-1] INFO [11111] {general} This executable uses the GNU C library (glibc), which is licensed under the GNU Lesser General Public License (LGPL), see https://www.gnu.org/copyleft/lesser.html and https://www.gnu.org/licenses/gpl.html
 Connected to ArangoDB 'http+tcp://127.0.0.1:8529, version: 3.12.3 [unknown, ], database: 'test', username: 'root'
@@ -466,7 +466,7 @@ collection:             customer_to_order
 overwrite coll. prefix: no
 create:                 no
 create database:        no
-source filename:        /tmp/customer_to_order.json
+source filename:        customer_to_order.json
 file type:              json
 threads:                4
 on duplicate:           error
@@ -508,7 +508,7 @@ updated/replaced: 0
 ignored:          0
 ```
 ```
-[root@rhel8 ~]# arangoimport --file "/tmp/order_to_city.json" --type json --collection "order_to_city" --server.database "test"
+[root@rhel8 ~]# arangoimport --file "order_to_city.json" --type json --collection "order_to_city" --server.database "test"
 Please specify a password:
 2025-01-31T09:55:35.283892Z [6632-1] INFO [11111] {general} This executable uses the GNU C library (glibc), which is licensed under the GNU Lesser General Public License (LGPL), see https://www.gnu.org/copyleft/lesser.html and https://www.gnu.org/licenses/gpl.html
 Connected to ArangoDB 'http+tcp://127.0.0.1:8529, version: 3.12.3 [unknown, ], database: 'test', username: 'root'
@@ -518,7 +518,7 @@ collection:             order_to_city
 overwrite coll. prefix: no
 create:                 no
 create database:        no
-source filename:        /tmp/order_to_city.json
+source filename:        order_to_city.json
 file type:              json
 threads:                4
 on duplicate:           error
@@ -559,7 +559,7 @@ updated/replaced: 0
 ignored:          0
 ```
 ```
-[root@rhel8 ~]# arangoimport --file "/tmp/order_to_prods.json" --type json --collection "order_to_prods" --server.database "test"
+[root@rhel8 ~]# arangoimport --file "order_to_prods.json" --type json --collection "order_to_prods" --server.database "test"
 Please specify a password:
 2025-01-31T09:56:01.459897Z [6649-1] INFO [11111] {general} This executable uses the GNU C library (glibc), which is licensed under the GNU Lesser General Public License (LGPL), see https://www.gnu.org/copyleft/lesser.html and https://www.gnu.org/licenses/gpl.html
 Connected to ArangoDB 'http+tcp://127.0.0.1:8529, version: 3.12.3 [unknown, ], database: 'test', username: 'root'
@@ -569,7 +569,7 @@ collection:             order_to_prods
 overwrite coll. prefix: no
 create:                 no
 create database:        no
-source filename:        /tmp/order_to_prods.json
+source filename:        order_to_prods.json
 file type:              json
 threads:                4
 on duplicate:           error
@@ -609,7 +609,7 @@ updated/replaced: 0
 ignored:          0
 ```
 ```
-[root@rhel8 ~]# arangoimport --file "/tmp/order_to_shop.json" --type json --collection "order_to_shop" --server.database "test"
+[root@rhel8 ~]# arangoimport --file "order_to_shop.json" --type json --collection "order_to_shop" --server.database "test"
 Please specify a password:
 2025-01-31T09:56:19.555892Z [6665-1] INFO [11111] {general} This executable uses the GNU C library (glibc), which is licensed under the GNU Lesser General Public License (LGPL), see https://www.gnu.org/copyleft/lesser.html and https://www.gnu.org/licenses/gpl.html
 Connected to ArangoDB 'http+tcp://127.0.0.1:8529, version: 3.12.3 [unknown, ], database: 'test', username: 'root'
@@ -619,7 +619,7 @@ collection:             order_to_shop
 overwrite coll. prefix: no
 create:                 no
 create database:        no
-source filename:        /tmp/order_to_shop.json
+source filename:        order_to_shop.json
 file type:              json
 threads:                4
 on duplicate:           error
