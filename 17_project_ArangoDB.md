@@ -299,7 +299,7 @@ db._createEdgeCollection("order_to_shop");
 
 7. Загружаю сгенерированные в json-файлы данные в созданные колекции:
 ```
-[root@rhel8 ~]# arangoimport --file "customers.json" --type json --collection "customers" --server.database "test"
+[root@host ~]# arangoimport --file "customers.json" --type json --collection "customers" --server.database "test"
 Please specify a password:
 2025-01-31T09:54:08.195878Z [6193-1] INFO [11111] {general} This executable uses the GNU C library (glibc), which is licensed under the GNU Lesser General Public License (LGPL), see https://www.gnu.org/copyleft/lesser.html and https://www.gnu.org/licenses/gpl.html
 Connected to ArangoDB 'http+tcp://127.0.0.1:8529, version: 3.12.3 [unknown, ], database: 'test', username: 'root'
@@ -324,7 +324,7 @@ updated/replaced: 0
 ignored:          0
 ```
 ```
-[root@rhel8 ~]# arangoimport --file "shops.json" --type json --collection "shops" --server.database "test"
+[root@host ~]# arangoimport --file "shops.json" --type json --collection "shops" --server.database "test"
 Please specify a password:
 2025-01-31T09:54:22.115856Z [6200-1] INFO [11111] {general} This executable uses the GNU C library (glibc), which is licensed under the GNU Lesser General Public License (LGPL), see https://www.gnu.org/copyleft/lesser.html and https://www.gnu.org/licenses/gpl.html
 Connected to ArangoDB 'http+tcp://127.0.0.1:8529, version: 3.12.3 [unknown, ], database: 'test', username: 'root'
@@ -349,7 +349,7 @@ updated/replaced: 0
 ignored:          0
 ```
 ```
-[root@rhel8 ~]# arangoimport --file "cities.json" --type json --collection "cities" --server.database "test"
+[root@host ~]# arangoimport --file "cities.json" --type json --collection "cities" --server.database "test"
 Please specify a password:
 2025-01-31T09:54:32.283785Z [6207-1] INFO [11111] {general} This executable uses the GNU C library (glibc), which is licensed under the GNU Lesser General Public License (LGPL), see https://www.gnu.org/copyleft/lesser.html and https://www.gnu.org/licenses/gpl.html
 Connected to ArangoDB 'http+tcp://127.0.0.1:8529, version: 3.12.3 [unknown, ], database: 'test', username: 'root'
@@ -374,7 +374,7 @@ updated/replaced: 0
 ignored:          0
 ```
 ```
-[root@rhel8 ~]# arangoimport --file "prods.json" --type json --collection "prods" --server.database "test"
+[root@host ~]# arangoimport --file "prods.json" --type json --collection "prods" --server.database "test"
 Please specify a password:
 2025-01-31T09:54:43.763807Z [6214-1] INFO [11111] {general} This executable uses the GNU C library (glibc), which is licensed under the GNU Lesser General Public License (LGPL), see https://www.gnu.org/copyleft/lesser.html and https://www.gnu.org/licenses/gpl.html
 Connected to ArangoDB 'http+tcp://127.0.0.1:8529, version: 3.12.3 [unknown, ], database: 'test', username: 'root'
@@ -399,7 +399,7 @@ updated/replaced: 0
 ignored:          0
 ```
 ```
-[root@rhel8 ~]# arangoimport --file "orders.json" --type json --collection "orders" --server.database "test"
+[root@host ~]# arangoimport --file "orders.json" --type json --collection "orders" --server.database "test"
 Please specify a password:
 2025-01-31T09:54:54.203794Z [6221-1] INFO [11111] {general} This executable uses the GNU C library (glibc), which is licensed under the GNU Lesser General Public License (LGPL), see https://www.gnu.org/copyleft/lesser.html and https://www.gnu.org/licenses/gpl.html
 Connected to ArangoDB 'http+tcp://127.0.0.1:8529, version: 3.12.3 [unknown, ], database: 'test', username: 'root'
@@ -456,7 +456,7 @@ updated/replaced: 0
 ignored:          0
 ```
 ```
-[root@rhel8 ~]# arangoimport --file "customer_to_order.json" --type json --collection "customer_to_order" --server.database "test"
+[root@host ~]# arangoimport --file "customer_to_order.json" --type json --collection "customer_to_order" --server.database "test"
 Please specify a password:
 2025-01-31T09:55:15.339888Z [6619-1] INFO [11111] {general} This executable uses the GNU C library (glibc), which is licensed under the GNU Lesser General Public License (LGPL), see https://www.gnu.org/copyleft/lesser.html and https://www.gnu.org/licenses/gpl.html
 Connected to ArangoDB 'http+tcp://127.0.0.1:8529, version: 3.12.3 [unknown, ], database: 'test', username: 'root'
@@ -508,7 +508,7 @@ updated/replaced: 0
 ignored:          0
 ```
 ```
-[root@rhel8 ~]# arangoimport --file "order_to_city.json" --type json --collection "order_to_city" --server.database "test"
+[root@host ~]# arangoimport --file "order_to_city.json" --type json --collection "order_to_city" --server.database "test"
 Please specify a password:
 2025-01-31T09:55:35.283892Z [6632-1] INFO [11111] {general} This executable uses the GNU C library (glibc), which is licensed under the GNU Lesser General Public License (LGPL), see https://www.gnu.org/copyleft/lesser.html and https://www.gnu.org/licenses/gpl.html
 Connected to ArangoDB 'http+tcp://127.0.0.1:8529, version: 3.12.3 [unknown, ], database: 'test', username: 'root'
@@ -559,7 +559,7 @@ updated/replaced: 0
 ignored:          0
 ```
 ```
-[root@rhel8 ~]# arangoimport --file "order_to_prods.json" --type json --collection "order_to_prods" --server.database "test"
+[root@host ~]# arangoimport --file "order_to_prods.json" --type json --collection "order_to_prods" --server.database "test"
 Please specify a password:
 2025-01-31T09:56:01.459897Z [6649-1] INFO [11111] {general} This executable uses the GNU C library (glibc), which is licensed under the GNU Lesser General Public License (LGPL), see https://www.gnu.org/copyleft/lesser.html and https://www.gnu.org/licenses/gpl.html
 Connected to ArangoDB 'http+tcp://127.0.0.1:8529, version: 3.12.3 [unknown, ], database: 'test', username: 'root'
@@ -609,7 +609,7 @@ updated/replaced: 0
 ignored:          0
 ```
 ```
-[root@rhel8 ~]# arangoimport --file "order_to_shop.json" --type json --collection "order_to_shop" --server.database "test"
+[root@host ~]# arangoimport --file "order_to_shop.json" --type json --collection "order_to_shop" --server.database "test"
 Please specify a password:
 2025-01-31T09:56:19.555892Z [6665-1] INFO [11111] {general} This executable uses the GNU C library (glibc), which is licensed under the GNU Lesser General Public License (LGPL), see https://www.gnu.org/copyleft/lesser.html and https://www.gnu.org/licenses/gpl.html
 Connected to ArangoDB 'http+tcp://127.0.0.1:8529, version: 3.12.3 [unknown, ], database: 'test', username: 'root'
@@ -659,6 +659,8 @@ updated/replaced: 0
 ignored:          0
 ```
 
+__РЕЗУЛЬТАТ__: 1000000 заказов загружен менне, чем за 20 секунд (исключаяя подготовку данных и сам зпуск команд).
+
 ### Загрузка тестовых данных в neo4j
 
 1. Копирую сгенерированный ранее файл orders_all.json в директорию /var/lib/neo4j/import/
@@ -678,7 +680,7 @@ MERGE (o)-[:ORDER_TO_SHOP]->(s)
 MERGE (o)-[:ORDER_TO_CITY]->(c)
 MERGE (o)-[:ORDER_TO_PROD]->(p);
 ```
-Результат: команда висит очень долгое время (больше 5 часов) с непонятным временем выполнения. Прерываю команду.
+__РЕЗУЛЬТАТ__: команда висит очень долгое время (больше 5 часов) с непонятным временем выполнения. Прерываю команду.
 
 3. Принимаю решение загружать данные частями, для чего дополнительно форматирую входной файл:
 - заключаю всё сожедржимое файла в скобки "[]" в начале и в конце файла;
@@ -775,7 +777,7 @@ ready to start consuming query after 3517802 ms, results consumed after another 
 Added 50000 nodes, Created 200000 relationships, Set 150002 properties, Added 50000 labels
 ```
 
-Результат: загрузка каждых следующих 50000 заказов идёт всё дольше. Скорее всего это связано с тем, что не только загружаются новые данные, но и они связываются с уже имющимися в БД.
+__РЕЗУЛЬТАТ__: загрузка каждых следующих 50000 заказов идёт всё дольше. Скорее всего это связано с тем, что не только загружаются новые данные, но и они связываются с уже имющимися в БД.
 Расчёт по росту времени загрузки каждой следующей порции показывает, что полная загрузка будет длиться около 42 часов. Это объясняет долгое зависание первой загрузки полного набора данных. Но ждать 43 часа не разумно, поэтому решаю остановиться на загруженных 250000 заказов.
 
 ### Сравнение команд и из выполнения в ArangoDB и neo4j
