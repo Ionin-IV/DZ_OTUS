@@ -658,3 +658,125 @@ warnings/errors:  0
 updated/replaced: 0
 ignored:          0
 ```
+
+### Загрузка тестовых данных в neo4j
+
+1. Копирую сгенерированный ранее файл orders_all.json в директорию /var/lib/neo4j/import/
+
+2. Пытаюсь загрузить сразу весь миллион заказов:
+```
+CALL apoc.load.json("file:///orders_all.json")
+YIELD value
+MERGE (o:order {order_id: value.order_id})
+SET o.date = value.date, o.price = value.price
+MERGE (cs:customer {customer: value.customer})
+MERGE (s:shop {shop: value.shop})
+MERGE (c:city {city: value.city})
+MERGE (p:prod {prod: value.prod})
+MERGE (cs)-[:CUSTOMER_TO_ORDER]->(o)
+MERGE (o)-[:ORDER_TO_SHOP]->(s)
+MERGE (o)-[:ORDER_TO_CITY]->(c)
+MERGE (o)-[:ORDER_TO_PROD]->(p);
+```
+Результат: команда висит очень долгое время (больше 5 часов) с непонятным временем выполнения. Прерываю команду.
+
+3. Принимаю решение загружать данные частями, для чего дополнительно форматирую входной файл:
+- заключаю всё сожедржимое файла в скобки "[]" в начале и в конце файла;
+- в конце каждой строки, кроме последней, добавляю запятую.
+
+4. Методом загрузки всё большего размера данных определяю, что оптимально загружать по 50000 заказов, чтобы можно было дождаться её выполнения. Загружаю:
+```
+neo4j@neo4j> CALL apoc.load.json("file:///orders_all.json", '[0:50000]', {batchSize: 1000})
+             YIELD value
+             MERGE (o:order {order_id: value.order_id})
+             SET o.date = value.date, o.price = value.price
+             MERGE (cs:customer {customer: value.customer})
+             MERGE (s:shop {shop: value.shop})
+             MERGE (c:city {city: value.city})
+             MERGE (p:prod {prod: value.prod})
+             MERGE (cs)-[:CUSTOMER_TO_ORDER]->(o)
+             MERGE (o)-[:ORDER_TO_SHOP]->(s)
+             MERGE (o)-[:ORDER_TO_CITY]->(c)
+             MERGE (o)-[:ORDER_TO_PROD]->(p);
+0 rows
+ready to start consuming query after 468305 ms, results consumed after another 0 ms
+Added 50034 nodes, Created 200000 relationships, Set 150034 properties, Added 50034 labels
+```
+
+```
+neo4j@neo4j> CALL apoc.load.json("file:///orders_all.json", '[50000:100000]', {batchSize: 1000})
+             YIELD value
+             MERGE (o:order {order_id: value.order_id})
+             SET o.date = value.date, o.price = value.price
+             MERGE (cs:customer {customer: value.customer})
+             MERGE (s:shop {shop: value.shop})
+             MERGE (c:city {city: value.city})
+             MERGE (p:prod {prod: value.prod})
+             MERGE (cs)-[:CUSTOMER_TO_ORDER]->(o)
+             MERGE (o)-[:ORDER_TO_SHOP]->(s)
+             MERGE (o)-[:ORDER_TO_CITY]->(c)
+             MERGE (o)-[:ORDER_TO_PROD]->(p);
+0 rows
+ready to start consuming query after 1210063 ms, results consumed after another 0 ms
+Added 50000 nodes, Created 200000 relationships, Set 150000 properties, Added 50000 labels
+```
+
+```
+neo4j@neo4j> CALL apoc.load.json("file:///orders_all.json", '[100000:150000]', {batchSize: 1000})
+             YIELD value
+             MERGE (o:order {order_id: value.order_id})
+             SET o.date = value.date, o.price = value.price
+             MERGE (cs:customer {customer: value.customer})
+             MERGE (s:shop {shop: value.shop})
+             MERGE (c:city {city: value.city})
+             MERGE (p:prod {prod: value.prod})
+             MERGE (cs)-[:CUSTOMER_TO_ORDER]->(o)
+             MERGE (o)-[:ORDER_TO_SHOP]->(s)
+             MERGE (o)-[:ORDER_TO_CITY]->(c)
+             MERGE (o)-[:ORDER_TO_PROD]->(p);
+0 rows
+ready to start consuming query after 1933327 ms, results consumed after another 0 ms
+Added 50000 nodes, Created 200000 relationships, Set 150000 properties, Added 50000 labels
+```
+
+```
+neo4j@neo4j> CALL apoc.load.json("file:///orders_all.json", '[150000:200000]', {batchSize: 1000})
+             YIELD value
+             MERGE (o:order {order_id: value.order_id})
+             SET o.date = value.date, o.price = value.price
+             MERGE (cs:customer {customer: value.customer})
+             MERGE (s:shop {shop: value.shop})
+             MERGE (c:city {city: value.city})
+             MERGE (p:prod {prod: value.prod})
+             MERGE (cs)-[:CUSTOMER_TO_ORDER]->(o)
+             MERGE (o)-[:ORDER_TO_SHOP]->(s)
+             MERGE (o)-[:ORDER_TO_CITY]->(c)
+             MERGE (o)-[:ORDER_TO_PROD]->(p);
+0 rows
+ready to start consuming query after 2644656 ms, results consumed after another 0 ms
+Added 50000 nodes, Created 200000 relationships, Set 150000 properties, Added 50000 labels
+```
+
+```
+neo4j@neo4j> CALL apoc.load.json("file:///orders_all.json", '[200000:250000]', {batchSize: 1000})
+             YIELD value
+             MERGE (o:order {order_id: value.order_id})
+             SET o.date = value.date, o.price = value.price
+             MERGE (cs:customer {customer: value.customer})
+             MERGE (s:shop {shop: value.shop})
+             MERGE (c:city {city: value.city})
+             MERGE (p:prod {prod: value.prod})
+             MERGE (cs)-[:CUSTOMER_TO_ORDER]->(o)
+             MERGE (o)-[:ORDER_TO_SHOP]->(s)
+             MERGE (o)-[:ORDER_TO_CITY]->(c)
+             MERGE (o)-[:ORDER_TO_PROD]->(p);
+0 rows
+ready to start consuming query after 3517802 ms, results consumed after another 1 ms
+Added 50000 nodes, Created 200000 relationships, Set 150002 properties, Added 50000 labels
+```
+
+Результат: загрузка каждых следующих 50000 заказов идёт всё дольше. Скорее всего это связано с тем, что не только загружаются новые данные, но и они связываются с уже имющимися в БД.
+Расчёт по росту времени загрузки каждой следующей порции показывает, что полная загрузка будет длиться около 42 часов. Это объясняет долгое зависание первой загрузки полного набора данных. Но ждать 43 часа не разумно, поэтому решаю остановиться на загруженных 250000 заказов.
+
+### Сравнение команд и из выполнения в ArangoDB и neo4j
+
