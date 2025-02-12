@@ -957,3 +957,7 @@ ready to start consuming query after 77 ms, results consumed after another 22 ms
 
 __РЕЗУЛЬТАТ__: в neo4j запрос выполнился за 99 мс, а в ArangoDB за 135 мс.
 
+
+## Сравнение СУБД ArangoDB, как документоориентированной, с MongoDB
+
+### Загрузка тестовых данных в MongoDB
