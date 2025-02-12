@@ -782,7 +782,7 @@ ready to start consuming query after 537 ms, results consumed after another 192 
 ```
 
 __РЕЗУЛЬТАТ__: в neo4j запрос выполнился за 729 мс, а в ArangoDB за 137 мс.
-Судя по статистике запроса в ArangoDB, запрос использовал индексы, созданные по умолчанию (primari индекс по _key на коллекциях и edge индекс по _to, _from на edge коллекциях).
+Судя по статистике запроса в ArangoDB, запрос использовал индексы, созданные по умолчанию (primary индекс по _key на коллекциях и edge индекс по _to, _from на edge коллекциях).
 
 Для более честного сравнения, создаю индексы на узлах и отношениях и в neo4j:
 ```
@@ -830,4 +830,130 @@ ready to start consuming query after 142 ms, results consumed after another 28 m
 
 __РЕЗУЛЬТАТ__: после построения индексов в neo4j, время выполнения запросов стало примерно сопоставимым (170 мс в neo4j против 137 мс в ArangoDB).
 
+#### Запрос №2
+
+__Задача__: выбрать сумму цен заказов по категориям товаров пользователя Владимир в магазине WB за 2024-01-05.
+
+Сразу добавлю недостающие индксы в neo4j:
+```
+neo4j@neo4j> CREATE INDEX prod_index FOR (p:prod) ON (p.prod);
+0 rows
+ready to start consuming query after 8 ms, results consumed after another 0 ms
+Added 1 indexes
+
+neo4j@neo4j> CREATE INDEX order_to_prod_index FOR ()-[r:ORDER_TO_PROD]-() ON (r.order_to_prod);
+0 rows
+ready to start consuming query after 10 ms, results consumed after another 0 ms
+Added 1 indexes
+```
+
+Запрос в neo4j
+```
+neo4j@neo4j> MATCH (cs:customer {customer:'Vladimir'}) -[r1:CUSTOMER_TO_ORDER]- (o:order) -[r2:ORDER_TO_PROD]- (p:prod)
+             WHERE o.date >= '2024-01-05 00:00' AND o.date < '2024-01-06 00:00'
+             return cs.customer, p.prod, sum(o.price);
++--------------------------------------------+
+| cs.customer | p.prod        | sum(o.price) |
++--------------------------------------------+
+| "Vladimir"  | "Cloth"       | 10114        |
+| "Vladimir"  | "Hobby"       | 7479         |
+| "Vladimir"  | "Pharmacy"    | 8856         |
+| "Vladimir"  | "Foods"       | 8479         |
+| "Vladimir"  | "AutoGoods"   | 2568         |
+| "Vladimir"  | "Books"       | 7739         |
+| "Vladimir"  | "Hosehold"    | 3600         |
+| "Vladimir"  | "Electronics" | 14347        |
+| "Vladimir"  | "Shoes"       | 4834         |
+| "Vladimir"  | "Drinks"      | 7156         |
++--------------------------------------------+
+
+10 rows
+ready to start consuming query after 77 ms, results consumed after another 22 ms
+```
+
+Запрос в ArangoDB:
+```
+127.0.0.1:8529@test> db._query('FOR v, e, p IN 0..2 ANY "customers/Vladimir" GRAPH "orders_graph" FILTER p.vertices[1].date >= "2024-01-05 00:00" AND p.vertices[1].date < "2024-01-06 00:00" COLLECT customers = p.vertices[0].customer, prods = p.vertices[2].prod AGGREGATE sum = sum(p.vertices[1].price) SORT prods RETURN { customers, prods, sum }').getExtra()
+{
+  "warnings" : [ ],
+  "stats" : {
+    "writesExecuted" : 0,
+    "writesIgnored" : 0,
+    "documentLookups" : 0,
+    "seeks" : 0,
+    "scannedFull" : 0,
+    "scannedIndex" : 52963,
+    "cursorsCreated" : 8,
+    "cursorsRearmed" : 1128,
+    "cacheHits" : 1136,
+    "cacheMisses" : 0,
+    "filtered" : 25142,
+    "httpRequests" : 0,
+    "executionTime" : 0.14777307999975164,
+    "peakMemoryUsage" : 4194304,
+    "intermediateCommits" : 0
+  }
+}
+
+127.0.0.1:8529@test> db._query('FOR v, e, p IN 0..2 ANY "customers/Vladimir" GRAPH "orders_graph" FILTER p.vertices[1].date >= "2024-01-05 00:00" AND p.vertices[1].date < "2024-01-06 00:00" COLLECT customers = p.vertices[0].customer, prods = p.vertices[2].prod AGGREGATE sum = sum(p.vertices[1].price) SORT prods RETURN { customers, prods, sum }').toArray()
+[
+  {
+    "customers" : "Vladimir",
+    "prods" : null,
+    "sum" : 225516
+  },
+  {
+    "customers" : "Vladimir",
+    "prods" : "AutoGoods",
+    "sum" : 2568
+  },
+  {
+    "customers" : "Vladimir",
+    "prods" : "Books",
+    "sum" : 7739
+  },
+  {
+    "customers" : "Vladimir",
+    "prods" : "Cloth",
+    "sum" : 10114
+  },
+  {
+    "customers" : "Vladimir",
+    "prods" : "Drinks",
+    "sum" : 7156
+  },
+  {
+    "customers" : "Vladimir",
+    "prods" : "Electronics",
+    "sum" : 14347
+  },
+  {
+    "customers" : "Vladimir",
+    "prods" : "Foods",
+    "sum" : 8479
+  },
+  {
+    "customers" : "Vladimir",
+    "prods" : "Hobby",
+    "sum" : 7479
+  },
+  {
+    "customers" : "Vladimir",
+    "prods" : "Household",
+    "sum" : 3600
+  },
+  {
+    "customers" : "Vladimir",
+    "prods" : "Pharmacy",
+    "sum" : 8856
+  },
+  {
+    "customers" : "Vladimir",
+    "prods" : "Shoes",
+    "sum" : 4834
+  }
+]
+```
+
+__РЕЗУЛЬАТ__: в neo4j запрос выполнился за 99 мс, а в ArangoDB за 148 мс.
 
