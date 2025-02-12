@@ -955,5 +955,5 @@ ready to start consuming query after 77 ms, results consumed after another 22 ms
 ]
 ```
 
-__РЕЗУЛЬАТ__: в neo4j запрос выполнился за 99 мс, а в ArangoDB за 148 мс.
+__РЕЗУЛЬТАТ__: в neo4j запрос выполнился за 99 мс, а в ArangoDB за 148 мс.
 
