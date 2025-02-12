@@ -718,5 +718,67 @@ ignored:          0
 
 __РЕЗУЛЬТАТ__: 250000 заказов загружено за доли секунд (исключаяя подготовку данных и сам запуск команд).
 
-### Сравнение команд и их выполнения в ArangoDB и neo4j
+### Сравнение запросов в ArangoDB и neo4j
 
+#### Запрос №1
+
+__Задача__: выбрать заказы пользователя Сергей в городе Москва в промежуток веремени с 2024-01-01 09:00 по 2024-01-01 12:00.
+
+Запрос в neo4j
+```
+neo4j@neo4j> MATCH (cs:customer {customer:'Sergey'}) -[r1:CUSTOMER_TO_ORDER]- (o:order) -[r2:ORDER_TO_CITY]- (c:city {city:'Moscow'})
+             WHERE o.date >= '2024-01-01 09:00' AND o.date < '2024-01-01 12:00'
+             RETURN cs.customer, o.order_id, o.date, o.price ORDER BY o.date;
++------------------------------------------------------------+
+| cs.customer | o.order_id | o.date                | o.price |
++------------------------------------------------------------+
+| "Sergey"    | 231041     | "2024-01-01 10:54:00" | 521     |
+| "Sergey"    | 231075     | "2024-01-01 11:28:00" | 892     |
++------------------------------------------------------------+
+
+2 rows
+ready to start consuming query after 537 ms, results consumed after another 192 ms
+```
+
+Запрос в ArangoDB:
+```
+127.0.0.1:8529@test> db._query('FOR v, e, p IN 0..2 OUTBOUND "customers/Sergey" GRAPH "orders_graph" FILTER p.vertices[2].city == "Moscow" AND p.vertices[1].date >= "2024-01-01 09:00" AND p.vertices[1].date < "2024-01-01 12:00" SORT p.vertices[1].date RETURN { customer: p.vertices[0].customer, order_id: p.vertices[1].order_id, date: p.vertices[1].date, price: p.vertices[1].price }').getExtra()
+{
+  "warnings" : [ ],
+  "stats" : {
+    "writesExecuted" : 0,
+    "writesIgnored" : 0,
+    "documentLookups" : 0,
+    "seeks" : 0,
+    "scannedFull" : 0,
+    "scannedIndex" : 50912,
+    "cursorsCreated" : 4,
+    "cursorsRearmed" : 68,
+    "cacheHits" : 72,
+    "cacheMisses" : 0,
+    "filtered" : 25433,
+    "httpRequests" : 0,
+    "executionTime" : 0.13699541300229612,
+    "peakMemoryUsage" : 4227072,
+    "intermediateCommits" : 0
+  }
+}
+
+127.0.0.1:8529@test> db._query('FOR v, e, p IN 0..2 OUTBOUND "customers/Sergey" GRAPH "orders_graph" FILTER p.vertices[2].city == "Moscow" AND p.vertices[1].date >= "2024-01-01 09:00" AND p.vertices[1].date < "2024-01-01 12:00" SORT p.vertices[1].date RETURN { customer: p.vertices[0].customer, order_id: p.vertices[1].order_id, date: p.vertices[1].date, price: p.vertices[1].price }').toArray()
+[
+  {
+    "customer" : "Sergey",
+    "order_id" : 231041,
+    "date" : "2024-01-01 10:54:00",
+    "price" : 521
+  },
+  {
+    "customer" : "Sergey",
+    "order_id" : 231075,
+    "date" : "2024-01-01 11:28:00",
+    "price" : 892
+  }
+]
+```
+
+__РЕЗУЛЬТАТ__: в neo4j запрос выполнился за 729 мс, а в ArangoDB за 137 мс.
