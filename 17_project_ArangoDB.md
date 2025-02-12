@@ -885,11 +885,11 @@ ready to start consuming query after 77 ms, results consumed after another 22 ms
     "scannedIndex" : 52963,
     "cursorsCreated" : 8,
     "cursorsRearmed" : 1128,
-    "cacheHits" : 1136,
-    "cacheMisses" : 0,
+    "cacheHits" : 1135,
+    "cacheMisses" : 1,
     "filtered" : 25142,
     "httpRequests" : 0,
-    "executionTime" : 0.14777307999975164,
+    "executionTime" : 0.13479698999981338,
     "peakMemoryUsage" : 4194304,
     "intermediateCommits" : 0
   }
@@ -955,5 +955,5 @@ ready to start consuming query after 77 ms, results consumed after another 22 ms
 ]
 ```
 
-__РЕЗУЛЬТАТ__: в neo4j запрос выполнился за 99 мс, а в ArangoDB за 148 мс.
+__РЕЗУЛЬТАТ__: в neo4j запрос выполнился за 99 мс, а в ArangoDB за 135 мс.
 
