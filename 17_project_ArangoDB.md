@@ -782,3 +782,52 @@ ready to start consuming query after 537 ms, results consumed after another 192 
 ```
 
 __РЕЗУЛЬТАТ__: в neo4j запрос выполнился за 729 мс, а в ArangoDB за 137 мс.
+Судя по статистике запроса в ArangoDB, запрос использовал индексы, созданные по умолчанию (primari индекс по _key на коллекциях и edge индекс по _to, _from на edge коллекциях).
+
+Для более честного сравнения, создаю индексы на узлах и отношениях и в neo4j:
+```
+neo4j@neo4j> CREATE INDEX customer_index FOR (c:customer) ON (c.customer);
+0 rows
+ready to start consuming query after 55 ms, results consumed after another 0 ms
+Added 1 indexes
+
+neo4j@neo4j> CREATE INDEX city_index FOR (c:city) ON (c.city);
+0 rows
+ready to start consuming query after 14 ms, results consumed after another 0 ms
+Added 1 indexes
+
+neo4j@neo4j> CREATE INDEX order_index FOR (o:order) ON (o.order_id, o.date, o.price);
+0 rows
+ready to start consuming query after 12 ms, results consumed after another 0 ms
+Added 1 indexes
+
+neo4j@neo4j> CREATE INDEX customer_to_order_index FOR ()-[r:CUSTOMER_TO_ORDER]-() ON (r.customer_to_order);
+0 rows
+ready to start consuming query after 15 ms, results consumed after another 0 ms
+Added 1 indexes
+
+neo4j@neo4j> CREATE INDEX order_to_city_index FOR ()-[r:ORDER_TO_CITY]-() ON (r.order_to_city);
+0 rows
+ready to start consuming query after 11 ms, results consumed after another 0 ms
+Added 1 indexes
+```
+
+И запускаю запрос в neo4j ещё раз:
+```
+neo4j@neo4j> MATCH (cs:customer {customer:'Sergey'}) -[r1:CUSTOMER_TO_ORDER]- (o:order) -[r2:ORDER_TO_CITY]- (c:city {city:'Moscow'})
+             WHERE o.date >= '2024-01-01 09:00' AND o.date < '2024-01-01 12:00'
+             RETURN cs.customer, o.order_id, o.date, o.price ORDER BY o.date;
++------------------------------------------------------------+
+| cs.customer | o.order_id | o.date                | o.price |
++------------------------------------------------------------+
+| "Sergey"    | 231041     | "2024-01-01 10:54:00" | 521     |
+| "Sergey"    | 231075     | "2024-01-01 11:28:00" | 892     |
++------------------------------------------------------------+
+
+2 rows
+ready to start consuming query after 142 ms, results consumed after another 28 ms
+```
+
+__РЕЗУЛЬТАТ__: после построения индексов в neo4j, время выполнения запросов стало примерно сопоставимым (170 мс в neo4j против 137 мс в ArangoDB).
+
+
