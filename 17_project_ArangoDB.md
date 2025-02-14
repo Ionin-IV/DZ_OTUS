@@ -747,6 +747,7 @@ ready to start consuming query after 537 ms, results consumed after another 192 
 Запрос в ArangoDB:
 ```
 127.0.0.1:8529@test> db._query('FOR v, e, p IN 0..2 OUTBOUND "customers/Sergey" GRAPH "orders_graph" FILTER p.vertices[2].city == "Moscow" AND p.vertices[1].date >= "2024-01-01 09:00" AND p.vertices[1].date < "2024-01-01 12:00" SORT p.vertices[1].date RETURN { customer: p.vertices[0].customer, order_id: p.vertices[1].order_id, date: p.vertices[1].date, price: p.vertices[1].price }').getExtra()
+>>>
 {
   "warnings" : [ ],
   "stats" : {
@@ -762,11 +763,14 @@ ready to start consuming query after 537 ms, results consumed after another 192 
     "cacheMisses" : 0,
     "filtered" : 25433,
     "httpRequests" : 0,
+<<<
     "executionTime" : 0.13699541300229612,
+>>>
     "peakMemoryUsage" : 4227072,
     "intermediateCommits" : 0
   }
 }
+<<<
 ```
 ```
 127.0.0.1:8529@test> db._query('FOR v, e, p IN 0..2 OUTBOUND "customers/Sergey" GRAPH "orders_graph" FILTER p.vertices[2].city == "Moscow" AND p.vertices[1].date >= "2024-01-01 09:00" AND p.vertices[1].date < "2024-01-01 12:00" SORT p.vertices[1].date RETURN { customer: p.vertices[0].customer, order_id: p.vertices[1].order_id, date: p.vertices[1].date, price: p.vertices[1].price }').toArray()
