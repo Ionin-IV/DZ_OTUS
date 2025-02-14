@@ -767,7 +767,8 @@ ready to start consuming query after 537 ms, results consumed after another 192 
     "intermediateCommits" : 0
   }
 }
-
+```
+```
 127.0.0.1:8529@test> db._query('FOR v, e, p IN 0..2 OUTBOUND "customers/Sergey" GRAPH "orders_graph" FILTER p.vertices[2].city == "Moscow" AND p.vertices[1].date >= "2024-01-01 09:00" AND p.vertices[1].date < "2024-01-01 12:00" SORT p.vertices[1].date RETURN { customer: p.vertices[0].customer, order_id: p.vertices[1].order_id, date: p.vertices[1].date, price: p.vertices[1].price }').toArray()
 [
   {
@@ -898,7 +899,8 @@ ready to start consuming query after 77 ms, results consumed after another 22 ms
     "intermediateCommits" : 0
   }
 }
-
+```
+```
 127.0.0.1:8529@test> db._query('FOR v, e, p IN 0..2 ANY "customers/Vladimir" GRAPH "orders_graph" FILTER p.vertices[1].date >= "2024-01-05 00:00" AND p.vertices[1].date < "2024-01-06 00:00" COLLECT customers = p.vertices[0].customer, prods = p.vertices[2].prod AGGREGATE sum = sum(p.vertices[1].price) SORT prods RETURN { customers, prods, sum }').toArray()
 [
   {
@@ -1085,8 +1087,8 @@ test> db.orders.find({ $and: [ { customer: "Oleg"}, { city: "Tula"}, { date: { $
     prod: 'Foods'
   }
 ]
-
-
+```
+```
 test> db.orders.find({ $and: [ { customer: "Oleg"}, { city: "Tula"}, { date: { $gte: "2023-10-08 09:00:00" } }, { date: { $lt: "2023-10-08 15:00:00" }} ]  }).sort({date: 1}).explain("executionStats")
 {
   explainVersion: '1',
@@ -1249,7 +1251,8 @@ test> db.orders.find({ $and: [ { customer: "Oleg"}, { city: "Tula"}, { date: { $
     "prod" : "Foods"
   }
 ]
-
+```
+```
 127.0.0.1:8529@test> db._query('FOR doc IN orders FILTER doc.date >= "2023-10-08 09:00:00" AND doc.date <= "2023-10-08 15:00:00" AND doc.customer == "Oleg" AND doc.city == "Tula" RETURN doc').getExtra()
 {
   "warnings" : [ ],
@@ -1483,7 +1486,8 @@ test> db.orders.aggregate([
   { _id: { prod: 'Pharmacy' }, totalSum: 3540 },
   { _id: { prod: 'Shoes' }, totalSum: 3182 }
 ]
-
+```
+```
 test> db.orders.aggregate([
 ... { $match: { $and: [ { customer: "Ivan"}, { date: { $gte: "2023-10-08 09:00:00" } }, { date: { $lt: "2023-10-08 15:00:00" }} ] } },
 ... { $group: { _id: { prod: "$prod" }, totalSum: { $sum: "$price" } }},
@@ -1947,7 +1951,8 @@ test> db.orders.aggregate([
     "sum" : 3182
   }
 ]
-
+```
+```
 127.0.0.1:8529@test> db._query('FOR doc IN orders FILTER doc.date >= "2023-10-08 09:00:00" AND doc.date < "2023-10-08 15:00:00" AND doc.customer == "Ivan" COLLECT prod = doc.prod AGGREGATE sum = sum(doc.price) SORT prod RETURN { prod, sum }').getExtra()
 {
   "warnings" : [ ],
