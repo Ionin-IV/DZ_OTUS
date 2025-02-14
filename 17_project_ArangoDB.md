@@ -1050,3 +1050,414 @@ __РЕЗУЛЬТАТ__: данные загружены за 2 секунды.
 
 __Задача__: выбрать заказы пользователя Олег в городе Тула в промежуток веремени с 2023-10-08 09:00 по 2023-10-08 15:00.
 
+Запрос в MongoDB:
+```
+test> db.orders.find({ $and: [ { customer: "Oleg"}, { city: "Tula"}, { date: { $gte: "2023-10-08 09:00:00" } }, { date: { $lt: "2023-10-08 15:00:00" }} ]  }).sort({date: 1})
+[
+  {
+    _id: ObjectId('67ada33ec06388e04ffb401a'),
+    order_id: 108430,
+    customer: 'Oleg',
+    date: '2023-10-08 10:00:00',
+    price: 332,
+    shop: 'Ozon',
+    city: 'Tula',
+    prod: 'Books'
+  },
+  {
+    _id: ObjectId('67ada33ec06388e04ffb402a'),
+    order_id: 108450,
+    customer: 'Oleg',
+    date: '2023-10-08 10:20:00',
+    price: 235,
+    shop: 'Ozon',
+    city: 'Tula',
+    prod: 'Cloth'
+  },
+  {
+    _id: ObjectId('67ada33ec06388e04ffb4125'),
+    order_id: 108697,
+    customer: 'Oleg',
+    date: '2023-10-08 14:27:00',
+    price: 439,
+    shop: 'YandexMarket',
+    city: 'Tula',
+    prod: 'Foods'
+  }
+]
+
+
+test> db.orders.find({ $and: [ { customer: "Oleg"}, { city: "Tula"}, { date: { $gte: "2023-10-08 09:00:00" } }, { date: { $lt: "2023-10-08 15:00:00" }} ]  }).sort({date: 1}).explain("executionStats")
+{
+  explainVersion: '1',
+  queryPlanner: {
+    namespace: 'test.orders',
+    indexFilterSet: false,
+    parsedQuery: {
+      '$and': [
+        { city: { '$eq': 'Tula' } },
+        { customer: { '$eq': 'Oleg' } },
+        { date: { '$lt': '2023-10-08 15:00:00' } },
+        { date: { '$gte': '2023-10-08 09:00:00' } }
+      ]
+    },
+    queryHash: '6627D976',
+    planCacheKey: '6627D976',
+    maxIndexedOrSolutionsReached: false,
+    maxIndexedAndSolutionsReached: false,
+    maxScansToExplodeReached: false,
+    winningPlan: {
+      stage: 'SORT',
+      sortPattern: { date: 1 },
+      memLimit: 104857600,
+      type: 'simple',
+      inputStage: {
+        stage: 'COLLSCAN',
+        filter: {
+          '$and': [
+            { city: { '$eq': 'Tula' } },
+            { customer: { '$eq': 'Oleg' } },
+            { date: { '$lt': '2023-10-08 15:00:00' } },
+            { date: { '$gte': '2023-10-08 09:00:00' } }
+          ]
+        },
+        direction: 'forward'
+      }
+    },
+    rejectedPlans: []
+  },
+  executionStats: {
+    executionSuccess: true,
+    nReturned: 3,
+    executionTimeMillis: 458,
+    totalKeysExamined: 0,
+    totalDocsExamined: 1000000,
+    executionStages: {
+      stage: 'SORT',
+      nReturned: 3,
+      executionTimeMillisEstimate: 6,
+      works: 1000005,
+      advanced: 3,
+      needTime: 1000001,
+      needYield: 0,
+      saveState: 1000,
+      restoreState: 1000,
+      isEOF: 1,
+      sortPattern: { date: 1 },
+      memLimit: 104857600,
+      type: 'simple',
+      totalDataSizeSorted: 635,
+      usedDisk: false,
+      spills: 0,
+      spilledDataStorageSize: 0,
+      inputStage: {
+        stage: 'COLLSCAN',
+        filter: {
+          '$and': [
+            { city: { '$eq': 'Tula' } },
+            { customer: { '$eq': 'Oleg' } },
+            { date: { '$lt': '2023-10-08 15:00:00' } },
+            { date: { '$gte': '2023-10-08 09:00:00' } }
+          ]
+        },
+        nReturned: 3,
+        executionTimeMillisEstimate: 6,
+        works: 1000001,
+        advanced: 3,
+        needTime: 999997,
+        needYield: 0,
+        saveState: 1000,
+        restoreState: 1000,
+        isEOF: 1,
+        direction: 'forward',
+        docsExamined: 1000000
+      }
+    }
+  },
+  command: {
+    find: 'orders',
+    filter: {
+      '$and': [
+        { customer: 'Oleg' },
+        { city: 'Tula' },
+        { date: { '$gte': '2023-10-08 09:00:00' } },
+        { date: { '$lt': '2023-10-08 15:00:00' } }
+      ]
+    },
+    sort: { date: 1 },
+    '$db': 'test'
+  },
+  serverInfo: {
+    host: 'rhel8',
+    port: 27017,
+    version: '7.0.16',
+    gitVersion: '18b949444cfdaa88e30b0e10243bc18268251c1f'
+  },
+  serverParameters: {
+    internalQueryFacetBufferSizeBytes: 104857600,
+    internalQueryFacetMaxOutputDocSizeBytes: 104857600,
+    internalLookupStageIntermediateDocumentMaxSizeBytes: 104857600,
+    internalDocumentSourceGroupMaxMemoryBytes: 104857600,
+    internalQueryMaxBlockingSortMemoryUsageBytes: 104857600,
+    internalQueryProhibitBlockingMergeOnMongoS: 0,
+    internalQueryMaxAddToSetBytes: 104857600,
+    internalDocumentSourceSetWindowFieldsMaxMemoryBytes: 104857600,
+    internalQueryFrameworkControl: 'trySbeRestricted'
+  },
+  ok: 1
+}
+```
+
+Запрос в ArangoDB:
+```
+127.0.0.1:8529@test> db._query('FOR doc IN orders FILTER doc.date >= "2023-10-08 09:00:00" AND doc.date <= "2023-10-08 15:00:00" AND doc.customer == "Oleg" AND doc.city == "Tula" RETURN doc').toArray()
+[
+  {
+    "_key" : "10413791",
+    "_id" : "orders/10413791",
+    "_rev" : "_jN4Rheq-BJ",
+    "order_id" : 108430,
+    "customer" : "Oleg",
+    "date" : "2023-10-08 10:00:00",
+    "price" : 332,
+    "shop" : "Ozon",
+    "city" : "Tula",
+    "prod" : "Books"
+  },
+  {
+    "_key" : "10413915",
+    "_id" : "orders/10413915",
+    "_rev" : "_jN4Rheq-DE",
+    "order_id" : 108450,
+    "customer" : "Oleg",
+    "date" : "2023-10-08 10:20:00",
+    "price" : 235,
+    "shop" : "Ozon",
+    "city" : "Tula",
+    "prod" : "Cloth"
+  },
+  {
+    "_key" : "10415573",
+    "_id" : "orders/10415573",
+    "_rev" : "_jN4Rhey-G3",
+    "order_id" : 108697,
+    "customer" : "Oleg",
+    "date" : "2023-10-08 14:27:00",
+    "price" : 439,
+    "shop" : "YandexMarket",
+    "city" : "Tula",
+    "prod" : "Foods"
+  }
+]
+
+127.0.0.1:8529@test> db._query('FOR doc IN orders FILTER doc.date >= "2023-10-08 09:00:00" AND doc.date <= "2023-10-08 15:00:00" AND doc.customer == "Oleg" AND doc.city == "Tula" RETURN doc').getExtra()
+{
+  "warnings" : [ ],
+  "stats" : {
+    "writesExecuted" : 0,
+    "writesIgnored" : 0,
+    "documentLookups" : 0,
+    "seeks" : 0,
+    "scannedFull" : 1000000,
+    "scannedIndex" : 0,
+    "cursorsCreated" : 0,
+    "cursorsRearmed" : 0,
+    "cacheHits" : 0,
+    "cacheMisses" : 0,
+    "filtered" : 999997,
+    "httpRequests" : 0,
+    "executionTime" : 0.45731531899946276,
+    "peakMemoryUsage" : 0,
+    "intermediateCommits" : 0
+  }
+}
+```
+
+__РЕЗУЛЬТАТ__: время выполнения запроса практически идентичное (458 и 457 мс, соответственно).
+
+Попробую пострить индексы.
+
+Создаю индекс в MongoDB:
+```
+test> db.orders.createIndex( { "customer": 1 , "city": 1, "date": 1 } );
+customer_1_city_1_date_1
+```
+
+Создаю индекс в ArangoDB:
+```
+127.0.0.1:8529@test> db.orders.ensureIndex({ type: "persistent", fields: [ "customer", "city", "date" ] });
+{
+  "cacheEnabled" : false,
+  "deduplicate" : true,
+  "estimates" : true,
+  "fields" : [
+    "customer",
+    "city",
+    "date"
+  ],
+  "id" : "orders/11138754",
+  "isNewlyCreated" : true,
+  "name" : "idx_1823934339584360448",
+  "selectivityEstimate" : 1,
+  "sparse" : false,
+  "type" : "persistent",
+  "unique" : false,
+  "code" : 201
+}
+```
+
+Снова выполняю запрос в MongoDB:
+```
+test> db.orders.find({ $and: [ { customer: "Oleg"}, { city: "Tula"}, { date: { $gte: "2023-10-08 09:00:00" } }, { date: { $lt: "2023-10-08 15:00:00" }} ]  }).sort({date: 1}).explain("executionStats");
+{
+  explainVersion: '1',
+  queryPlanner: {
+    namespace: 'test.orders',
+    indexFilterSet: false,
+    parsedQuery: {
+      '$and': [
+        { city: { '$eq': 'Tula' } },
+        { customer: { '$eq': 'Oleg' } },
+        { date: { '$lt': '2023-10-08 15:00:00' } },
+        { date: { '$gte': '2023-10-08 09:00:00' } }
+      ]
+    },
+    queryHash: '6627D976',
+    planCacheKey: 'D37A1B8F',
+    maxIndexedOrSolutionsReached: false,
+    maxIndexedAndSolutionsReached: false,
+    maxScansToExplodeReached: false,
+    winningPlan: {
+      stage: 'FETCH',
+      inputStage: {
+        stage: 'IXSCAN',
+        keyPattern: { customer: 1, city: 1, date: 1 },
+        indexName: 'customer_1_city_1_date_1',
+        isMultiKey: false,
+        multiKeyPaths: { customer: [], city: [], date: [] },
+        isUnique: false,
+        isSparse: false,
+        isPartial: false,
+        indexVersion: 2,
+        direction: 'forward',
+        indexBounds: {
+          customer: [ '["Oleg", "Oleg"]' ],
+          city: [ '["Tula", "Tula"]' ],
+          date: [ '["2023-10-08 09:00:00", "2023-10-08 15:00:00")' ]
+        }
+      }
+    },
+    rejectedPlans: []
+  },
+  executionStats: {
+    executionSuccess: true,
+    nReturned: 3,
+    executionTimeMillis: 1,
+    totalKeysExamined: 3,
+    totalDocsExamined: 3,
+    executionStages: {
+      stage: 'FETCH',
+      nReturned: 3,
+      executionTimeMillisEstimate: 0,
+      works: 4,
+      advanced: 3,
+      needTime: 0,
+      needYield: 0,
+      saveState: 0,
+      restoreState: 0,
+      isEOF: 1,
+      docsExamined: 3,
+      alreadyHasObj: 0,
+      inputStage: {
+        stage: 'IXSCAN',
+        nReturned: 3,
+        executionTimeMillisEstimate: 0,
+        works: 4,
+        advanced: 3,
+        needTime: 0,
+        needYield: 0,
+        saveState: 0,
+        restoreState: 0,
+        isEOF: 1,
+        keyPattern: { customer: 1, city: 1, date: 1 },
+        indexName: 'customer_1_city_1_date_1',
+        isMultiKey: false,
+        multiKeyPaths: { customer: [], city: [], date: [] },
+        isUnique: false,
+        isSparse: false,
+        isPartial: false,
+        indexVersion: 2,
+        direction: 'forward',
+        indexBounds: {
+          customer: [ '["Oleg", "Oleg"]' ],
+          city: [ '["Tula", "Tula"]' ],
+          date: [ '["2023-10-08 09:00:00", "2023-10-08 15:00:00")' ]
+        },
+        keysExamined: 3,
+        seeks: 1,
+        dupsTested: 0,
+        dupsDropped: 0
+      }
+    }
+  },
+  command: {
+    find: 'orders',
+    filter: {
+      '$and': [
+        { customer: 'Oleg' },
+        { city: 'Tula' },
+        { date: { '$gte': '2023-10-08 09:00:00' } },
+        { date: { '$lt': '2023-10-08 15:00:00' } }
+      ]
+    },
+    sort: { date: 1 },
+    '$db': 'test'
+  },
+  serverInfo: {
+    host: 'rhel8',
+    port: 27017,
+    version: '7.0.16',
+    gitVersion: '18b949444cfdaa88e30b0e10243bc18268251c1f'
+  },
+  serverParameters: {
+    internalQueryFacetBufferSizeBytes: 104857600,
+    internalQueryFacetMaxOutputDocSizeBytes: 104857600,
+    internalLookupStageIntermediateDocumentMaxSizeBytes: 104857600,
+    internalDocumentSourceGroupMaxMemoryBytes: 104857600,
+    internalQueryMaxBlockingSortMemoryUsageBytes: 104857600,
+    internalQueryProhibitBlockingMergeOnMongoS: 0,
+    internalQueryMaxAddToSetBytes: 104857600,
+    internalDocumentSourceSetWindowFieldsMaxMemoryBytes: 104857600,
+    internalQueryFrameworkControl: 'trySbeRestricted'
+  },
+  ok: 1
+}
+```
+
+И в ArangoDB:
+```
+127.0.0.1:8529@test> db._query('FOR doc IN orders FILTER doc.date >= "2023-10-08 09:00:00" AND doc.date <= "2023-10-08 15:00:00" AND doc.customer == "Oleg" AND doc.city == "Tula" RETURN doc').getExtra()
+{
+  "warnings" : [ ],
+  "stats" : {
+    "writesExecuted" : 0,
+    "writesIgnored" : 0,
+    "documentLookups" : 3,
+    "seeks" : 0,
+    "scannedFull" : 0,
+    "scannedIndex" : 3,
+    "cursorsCreated" : 1,
+    "cursorsRearmed" : 0,
+    "cacheHits" : 0,
+    "cacheMisses" : 0,
+    "filtered" : 0,
+    "httpRequests" : 0,
+    "executionTime" : 0.0004009320000477601,
+    "peakMemoryUsage" : 32768,
+    "intermediateCommits" : 0
+  }
+}
+```
+
+__РЕЗУЛЬТАТ__: скокрость выполнения запроса в обеих БД многократно увеличилась и стала равна примерно 1 мс.
+
