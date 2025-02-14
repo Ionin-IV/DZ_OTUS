@@ -965,3 +965,88 @@ __РЕЗУЛЬТАТ__: в Neo4j запрос выполнился за 99 мс,
 ## Сравнение СУБД ArangoDB, как документоориентированной, с MongoDB
 
 ### Загрузка тестовых данных в MongoDB
+
+Загружаю сформированный ранее json-файл с 1000000 заказов:
+```
+[root@test ~]# mongoimport --collection=orders --db=test --file=orders_all.json
+2025-02-13T10:46:05.135+0300    connected to: mongodb://localhost/
+2025-02-13T10:46:08.135+0300    [#####...................] test.orders  28.8MB/138MB (20.9%)
+2025-02-13T10:46:11.135+0300    [##########..............] test.orders  57.8MB/138MB (41.9%)
+2025-02-13T10:46:14.135+0300    [###############.........] test.orders  86.4MB/138MB (62.7%)
+2025-02-13T10:46:17.135+0300    [####################....] test.orders  116MB/138MB (84.0%)
+2025-02-13T10:46:19.560+0300    [########################] test.orders  138MB/138MB (100.0%)
+2025-02-13T10:46:19.560+0300    1000000 document(s) imported successfully. 0 document(s) failed to import.
+```
+
+__РЕЗУЛЬТАТ__: данные загружены за 15 секунд.
+
+### Загрузка тестовых данных в ArangoDB
+
+Загружаю тот же json-файл:
+```
+[root@rhel8 ~]# arangoimport --file "orders_all.json" --type json --collection "orders" --server.database "test"
+Please specify a password:
+2025-02-13T09:11:10.086675Z [5988-1] INFO [11111] {general} This executable uses the GNU C library (glibc), which is licensed under the GNU Lesser General Public License (LGPL), see https://www.gnu.org/copyleft/lesser.html and https://www.gnu.org/licenses/gpl.html
+Connected to ArangoDB 'http+tcp://127.0.0.1:8529, version: 3.12.3 [unknown, ], database: 'test', username: 'root'
+----------------------------------------
+database:               test
+collection:             orders
+overwrite coll. prefix: no
+create:                 no
+create database:        no
+source filename:        orders_all.json
+file type:              json
+threads:                8
+on duplicate:           error
+connect timeout:        5
+request timeout:        1200
+----------------------------------------
+Starting JSON import...
+2025-02-13T09:11:10.089782Z [5988-1] INFO [9ddf3] {general} processed 5.2 MB (3%) of input file
+2025-02-13T09:11:10.094743Z [5988-1] INFO [9ddf3] {general} processed 9.4 MB (6%) of input file
+2025-02-13T09:11:10.099470Z [5988-1] INFO [9ddf3] {general} processed 13.6 MB (9%) of input file
+2025-02-13T09:11:10.100367Z [5988-1] INFO [9ddf3] {general} processed 17.8 MB (12%) of input file
+2025-02-13T09:11:10.105824Z [5988-1] INFO [9ddf3] {general} processed 22.0 MB (15%) of input file
+2025-02-13T09:11:10.106796Z [5988-1] INFO [9ddf3] {general} processed 26.2 MB (18%) of input file
+2025-02-13T09:11:10.112507Z [5988-1] INFO [9ddf3] {general} processed 30.4 MB (21%) of input file
+2025-02-13T09:11:10.118928Z [5988-1] INFO [9ddf3] {general} processed 35.6 MB (24%) of input file
+2025-02-13T09:11:10.120112Z [5988-1] INFO [9ddf3] {general} processed 39.8 MB (27%) of input file
+2025-02-13T09:11:10.128134Z [5988-1] INFO [9ddf3] {general} processed 44.0 MB (30%) of input file
+2025-02-13T09:11:10.129604Z [5988-1] INFO [9ddf3] {general} processed 48.2 MB (33%) of input file
+2025-02-13T09:11:10.139047Z [5988-1] INFO [9ddf3] {general} processed 52.4 MB (36%) of input file
+2025-02-13T09:11:10.140360Z [5988-1] INFO [9ddf3] {general} processed 56.6 MB (39%) of input file
+2025-02-13T09:11:10.147433Z [5988-1] INFO [9ddf3] {general} processed 60.8 MB (42%) of input file
+2025-02-13T09:11:10.148372Z [5988-1] INFO [9ddf3] {general} processed 66.0 MB (45%) of input file
+2025-02-13T09:11:10.156787Z [5988-1] INFO [9ddf3] {general} processed 70.2 MB (48%) of input file
+2025-02-13T09:11:10.158167Z [5988-1] INFO [9ddf3] {general} processed 74.4 MB (51%) of input file
+2025-02-13T09:11:10.895383Z [5988-1] INFO [9ddf3] {general} processed 78.6 MB (54%) of input file
+2025-02-13T09:11:10.896456Z [5988-1] INFO [9ddf3] {general} processed 82.8 MB (57%) of input file
+2025-02-13T09:11:10.973185Z [5988-1] INFO [9ddf3] {general} processed 87.0 MB (60%) of input file
+2025-02-13T09:11:10.974239Z [5988-1] INFO [9ddf3] {general} processed 91.2 MB (63%) of input file
+2025-02-13T09:11:10.990092Z [5988-1] INFO [9ddf3] {general} processed 95.4 MB (66%) of input file
+2025-02-13T09:11:10.991082Z [5988-1] INFO [9ddf3] {general} processed 100.6 MB (69%) of input file
+2025-02-13T09:11:11.050314Z [5988-1] INFO [9ddf3] {general} processed 104.8 MB (72%) of input file
+2025-02-13T09:11:11.051116Z [5988-1] INFO [9ddf3] {general} processed 109.0 MB (75%) of input file
+2025-02-13T09:11:11.194738Z [5988-1] INFO [9ddf3] {general} processed 113.2 MB (78%) of input file
+2025-02-13T09:11:11.196193Z [5988-1] INFO [9ddf3] {general} processed 117.4 MB (81%) of input file
+2025-02-13T09:11:11.247762Z [5988-1] INFO [9ddf3] {general} processed 121.6 MB (84%) of input file
+2025-02-13T09:11:11.248558Z [5988-1] INFO [9ddf3] {general} processed 125.8 MB (87%) of input file
+2025-02-13T09:11:11.364477Z [5988-1] INFO [9ddf3] {general} processed 131.0 MB (90%) of input file
+2025-02-13T09:11:11.365247Z [5988-1] INFO [9ddf3] {general} processed 135.2 MB (93%) of input file
+2025-02-13T09:11:11.718451Z [5988-1] INFO [9ddf3] {general} processed 139.4 MB (96%) of input file
+2025-02-13T09:11:11.719515Z [5988-1] INFO [9ddf3] {general} processed 143.6 MB (99%) of input file
+
+created:          1000000
+warnings/errors:  0
+updated/replaced: 0
+ignored:          0
+```
+
+__РЕЗУЛЬТАТ__: данные загружены за 2 секунды.
+
+### Сравнение запросов в ArangoDB и MongoDB
+
+#### Запрос №1
+
+__Задача__: выбрать заказы пользователя Олег в городе Тула в промежуток веремени с 2023-10-08 09:00 по 2023-10-08 15:00.
+
