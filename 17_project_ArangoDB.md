@@ -1461,3 +1461,567 @@ test> db.orders.find({ $and: [ { customer: "Oleg"}, { city: "Tula"}, { date: { $
 
 __РЕЗУЛЬТАТ__: скокрость выполнения запроса в обеих БД многократно увеличилась и стала равна примерно 1 мс.
 
+#### Запрос №2
+
+__Задача__: выбрать сумму цен заказов по категориям товаров пользователя Иван с 2023-10-08 09:00 по 2023-10-08 15:00.
+
+Выполняю запрос в MongoDB:
+```
+test> db.orders.aggregate([
+... { $match: { $and: [ { customer: "Ivan"}, { date: { $gte: "2023-10-08 09:00:00" } }, { date: { $lt: "2023-10-08 15:00:00" }} ] } },
+... { $group: { _id: { prod: "$prod" }, totalSum: { $sum: "$price" } }},
+... { $sort: { _id: 1 }}
+... ]);
+[
+  { _id: { prod: 'AutoGoods' }, totalSum: 1374 },
+  { _id: { prod: 'Books' }, totalSum: 2325 },
+  { _id: { prod: 'Cloth' }, totalSum: 2644 },
+  { _id: { prod: 'Drinks' }, totalSum: 983 },
+  { _id: { prod: 'Foods' }, totalSum: 3464 },
+  { _id: { prod: 'Hobby' }, totalSum: 2345 },
+  { _id: { prod: 'Hosehold' }, totalSum: 492 },
+  { _id: { prod: 'Pharmacy' }, totalSum: 3540 },
+  { _id: { prod: 'Shoes' }, totalSum: 3182 }
+]
+
+test> db.orders.aggregate([
+... { $match: { $and: [ { customer: "Ivan"}, { date: { $gte: "2023-10-08 09:00:00" } }, { date: { $lt: "2023-10-08 15:00:00" }} ] } },
+... { $group: { _id: { prod: "$prod" }, totalSum: { $sum: "$price" } }},
+... { $sort: { _id: 1 }}
+... ]).explain("executionStats");
+{
+  explainVersion: '2',
+  stages: [
+    {
+      '$cursor': {
+        queryPlanner: {
+          namespace: 'test.orders',
+          indexFilterSet: false,
+          parsedQuery: {
+            '$and': [
+              { customer: { '$eq': 'Ivan' } },
+              { date: { '$lt': '2023-10-08 15:00:00' } },
+              { date: { '$gte': '2023-10-08 09:00:00' } }
+            ]
+          },
+          queryHash: '74CC37FE',
+          planCacheKey: '0E79BBFD',
+          maxIndexedOrSolutionsReached: false,
+          maxIndexedAndSolutionsReached: false,
+          maxScansToExplodeReached: false,
+          winningPlan: {
+            queryPlan: {
+              stage: 'GROUP',
+              planNodeId: 4,
+              inputStage: {
+                stage: 'FETCH',
+                planNodeId: 2,
+                inputStage: {
+                  stage: 'IXSCAN',
+                  planNodeId: 1,
+                  keyPattern: { customer: 1, city: 1, date: 1 },
+                  indexName: 'customer_1_city_1_date_1',
+                  isMultiKey: false,
+                  multiKeyPaths: { customer: [], city: [], date: [] },
+                  isUnique: false,
+                  isSparse: false,
+                  isPartial: false,
+                  indexVersion: 2,
+                  direction: 'forward',
+                  indexBounds: {
+                    customer: [ '["Ivan", "Ivan"]' ],
+                    city: [ '[MinKey, MaxKey]' ],
+                    date: [
+                      '["2023-10-08 09:00:00", "2023-10-08 15:00:00")'
+                    ]
+                  }
+                }
+              }
+            },
+            slotBasedPlan: {
+              slots: `$$RESULT=s34 env: { s24 = true, s2 = Nothing (SEARCH_META), s3 = 1739437287603 (NOW), s5 = IndexBounds("field #0['customer']: [CollationKey(0x4976616e), CollationKey(0x4976616e)], field #1['city']: [MinKey, MaxKey], field #2['date']: [CollationKey(0x323032332d3130"...), s1 = TimeZoneDatabase(Atlantic/Faroe...America/Managua) (timeZoneDB), s9 = {"customer" : 1, "city" : 1, "date" : 1}, s13 = Nothing }`,
+              stages: '[4] project [s34 = newObj("_id", s32, "totalSum", s33)] \n' +
+                '[4] project [s32 = newObj("prod", s29), s33 = doubleDoubleSumFinalize(s30)] \n' +
+                '[4] group [s29] [s30 = aggDoubleDoubleSum(s27)] spillSlots[s31] mergingExprs[aggMergeDoubleDoubleSums(s31)] \n' +
+                '[4] project [s29 = (s28 ?: null)] \n' +
+                '[2] nlj inner [] [s19, s20, s21, s22, s23] \n' +
+                '    left \n' +
+                '        [1] branch {s24} [s19, s20, s21, s22, s23] \n' +
+                '        [s4, s6, s7, s8, s9] [1] ixscan_generic s5 s8 s4 s6 s7 lowPriority [] @"04f108c1-b995-43e6-9914-8f9f25adca43" @"customer_1_city_1_date_1" true \n' +
+                '        [s10, s16, s17, s18, s9] [1] nlj inner [] [s11, s12] \n' +
+                '            left \n' +
+                '                [1] project [s11 = getField(s14, "l"), s12 = getField(s14, "h")] \n' +
+                '                [1] unwind s14 s15 s13 false \n' +
+                '                [1] limit 1ll \n' +
+                '                [1] coscan \n' +
+                '            right \n' +
+                '                [1] ixseek s11 s12 s18 s10 s16 s17 [] @"04f108c1-b995-43e6-9914-8f9f25adca43" @"customer_1_city_1_date_1" true \n' +
+                '    right \n' +
+                '        [2] limit 1ll \n' +
+                '        [2] seek s19 s25 s26 s20 s21 s22 s23 [s27 = price, s28 = prod] @"04f108c1-b995-43e6-9914-8f9f25adca43" true false \n'
+            }
+          },
+          rejectedPlans: []
+        },
+        executionStats: {
+          executionSuccess: true,
+          nReturned: 9,
+          executionTimeMillis: 1,
+          totalKeysExamined: 55,
+          totalDocsExamined: 34,
+          executionStages: {
+            stage: 'project',
+            planNodeId: 4,
+            nReturned: 9,
+            executionTimeMillisEstimate: 0,
+            opens: 1,
+            closes: 1,
+            saveState: 1,
+            restoreState: 1,
+            isEOF: 1,
+            projections: { '34': 'newObj("_id", s32, "totalSum", s33) ' },
+            inputStage: {
+              stage: 'project',
+              planNodeId: 4,
+              nReturned: 9,
+              executionTimeMillisEstimate: 0,
+              opens: 1,
+              closes: 1,
+              saveState: 1,
+              restoreState: 1,
+              isEOF: 1,
+              projections: {
+                '32': 'newObj("prod", s29) ',
+                '33': 'doubleDoubleSumFinalize(s30) '
+              },
+              inputStage: {
+                stage: 'group',
+                planNodeId: 4,
+                nReturned: 9,
+                executionTimeMillisEstimate: 0,
+                opens: 1,
+                closes: 1,
+                saveState: 1,
+                restoreState: 1,
+                isEOF: 1,
+                groupBySlots: [ Long('29') ],
+                expressions: {
+                  '30': 'aggDoubleDoubleSum(s27) ',
+                  initExprs: { '30': null }
+                },
+                mergingExprs: { '31': 'aggMergeDoubleDoubleSums(s31) ' },
+                usedDisk: false,
+                spills: 0,
+                spilledBytes: 0,
+                spilledRecords: 0,
+                spilledDataStorageSize: 0,
+                inputStage: {
+                  stage: 'project',
+                  planNodeId: 4,
+                  nReturned: 34,
+                  executionTimeMillisEstimate: 0,
+                  opens: 1,
+                  closes: 1,
+                  saveState: 1,
+                  restoreState: 1,
+                  isEOF: 1,
+                  projections: { '29': '(s28 ?: null) ' },
+                  inputStage: {
+                    stage: 'nlj',
+                    planNodeId: 2,
+                    nReturned: 34,
+                    executionTimeMillisEstimate: 0,
+                    opens: 1,
+                    closes: 1,
+                    saveState: 1,
+                    restoreState: 1,
+                    isEOF: 1,
+                    totalDocsExamined: 34,
+                    totalKeysExamined: 55,
+                    collectionScans: 0,
+                    collectionSeeks: 34,
+                    indexScans: 0,
+                    indexSeeks: 1,
+                    indexesUsed: [
+                      'customer_1_city_1_date_1',
+                      'customer_1_city_1_date_1'
+                    ],
+                    innerOpens: 34,
+                    innerCloses: 1,
+                    outerProjects: [],
+                    outerCorrelated: [
+                      Long('19'),
+                      Long('20'),
+                      Long('21'),
+                      Long('22'),
+                      Long('23')
+                    ],
+                    outerStage: {
+                      stage: 'branch',
+                      planNodeId: 1,
+                      nReturned: 34,
+                      executionTimeMillisEstimate: 0,
+                      opens: 1,
+                      closes: 1,
+                      saveState: 1,
+                      restoreState: 1,
+                      isEOF: 1,
+                      numTested: 1,
+                      thenBranchOpens: 1,
+                      thenBranchCloses: 1,
+                      elseBranchOpens: 0,
+                      elseBranchCloses: 0,
+                      filter: 's24 ',
+                      thenSlots: [
+                        Long('4'),
+                        Long('6'),
+                        Long('7'),
+                        Long('8'),
+                        Long('9')
+                      ],
+                      elseSlots: [
+                        Long('10'),
+                        Long('16'),
+                        Long('17'),
+                        Long('18'),
+                        Long('9')
+                      ],
+                      outputSlots: [
+                        Long('19'),
+                        Long('20'),
+                        Long('21'),
+                        Long('22'),
+                        Long('23')
+                      ],
+                      thenStage: {
+                        stage: 'ixscan_generic',
+                        planNodeId: 1,
+                        nReturned: 34,
+                        executionTimeMillisEstimate: 0,
+                        opens: 1,
+                        closes: 1,
+                        saveState: 1,
+                        restoreState: 1,
+                        isEOF: 1,
+                        indexName: 'customer_1_city_1_date_1',
+                        keysExamined: 55,
+                        seeks: 21,
+                        numReads: 55,
+                        indexKeySlot: 8,
+                        recordIdSlot: 4,
+                        snapshotIdSlot: 6,
+                        indexIdentSlot: 7,
+                        outputSlots: [],
+                        indexKeysToInclude: '00000000000000000000000000000000'
+                      },
+                      elseStage: {
+                        stage: 'nlj',
+                        planNodeId: 1,
+                        nReturned: 0,
+                        executionTimeMillisEstimate: 0,
+                        opens: 0,
+                        closes: 0,
+                        saveState: 1,
+                        restoreState: 1,
+                        isEOF: 0,
+                        totalDocsExamined: 0,
+                        totalKeysExamined: 0,
+                        collectionScans: 0,
+                        collectionSeeks: 0,
+                        indexScans: 0,
+                        indexSeeks: 0,
+                        indexesUsed: [ 'customer_1_city_1_date_1' ],
+                        innerOpens: 0,
+                        innerCloses: 0,
+                        outerProjects: [],
+                        outerCorrelated: [ Long('11'), Long('12') ],
+                        outerStage: {
+                          stage: 'project',
+                          planNodeId: 1,
+                          nReturned: 0,
+                          executionTimeMillisEstimate: 0,
+                          opens: 0,
+                          closes: 0,
+                          saveState: 1,
+                          restoreState: 1,
+                          isEOF: 0,
+                          projections: {
+                            '11': 'getField(s14, "l") ',
+                            '12': 'getField(s14, "h") '
+                          },
+                          inputStage: {
+                            stage: 'unwind',
+                            planNodeId: 1,
+                            nReturned: 0,
+                            executionTimeMillisEstimate: 0,
+                            opens: 0,
+                            closes: 0,
+                            saveState: 1,
+                            restoreState: 1,
+                            isEOF: 0,
+                            inputSlot: 13,
+                            outSlot: 14,
+                            outIndexSlot: 15,
+                            preserveNullAndEmptyArrays: 0,
+                            inputStage: {
+                              stage: 'limit',
+                              planNodeId: 1,
+                              nReturned: 0,
+                              executionTimeMillisEstimate: 0,
+                              opens: 0,
+                              closes: 0,
+                              saveState: 1,
+                              restoreState: 1,
+                              isEOF: 0,
+                              inputStage: {
+                                stage: 'coscan',
+                                planNodeId: 1,
+                                nReturned: 0,
+                                executionTimeMillisEstimate: 0,
+                                opens: 0,
+                                closes: 0,
+                                saveState: 1,
+                                restoreState: 1,
+                                isEOF: 0
+                              }
+                            }
+                          }
+                        },
+                        innerStage: {
+                          stage: 'ixseek',
+                          planNodeId: 1,
+                          nReturned: 0,
+                          executionTimeMillisEstimate: 0,
+                          opens: 0,
+                          closes: 0,
+                          saveState: 1,
+                          restoreState: 1,
+                          isEOF: 0,
+                          indexName: 'customer_1_city_1_date_1',
+                          keysExamined: 0,
+                          seeks: 0,
+                          numReads: 0,
+                          indexKeySlot: 18,
+                          recordIdSlot: 10,
+                          snapshotIdSlot: 16,
+                          indexIdentSlot: 17,
+                          outputSlots: [],
+                          indexKeysToInclude: '00000000000000000000000000000000',
+                          seekKeyLow: 's11 ',
+                          seekKeyHigh: 's12 '
+                        }
+                      }
+                    },
+                    innerStage: {
+                      stage: 'limit',
+                      planNodeId: 2,
+                      nReturned: 34,
+                      executionTimeMillisEstimate: 0,
+                      opens: 34,
+                      closes: 1,
+                      saveState: 1,
+                      restoreState: 1,
+                      isEOF: 1,
+                      limit: 1,
+                      inputStage: {
+                        stage: 'seek',
+                        planNodeId: 2,
+                        nReturned: 34,
+                        executionTimeMillisEstimate: 0,
+                        opens: 34,
+                        closes: 1,
+                        saveState: 1,
+                        restoreState: 1,
+                        isEOF: 0,
+                        numReads: 34,
+                        recordSlot: 25,
+                        recordIdSlot: 26,
+                        seekKeySlot: 19,
+                        snapshotIdSlot: 20,
+                        indexIdentSlot: 21,
+                        indexKeySlot: 22,
+                        indexKeyPatternSlot: 23,
+                        fields: [ 'price', 'prod' ],
+                        outputSlots: [ Long('27'), Long('28') ]
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      nReturned: Long('9'),
+      executionTimeMillisEstimate: Long('0')
+    },
+    {
+      '$sort': { sortKey: { _id: 1 } },
+      totalDataSizeSortedBytesEstimate: Long('6687'),
+      usedDisk: false,
+      spills: Long('0'),
+      spilledDataStorageSize: Long('0'),
+      nReturned: Long('9'),
+      executionTimeMillisEstimate: Long('0')
+    }
+  ],
+  serverInfo: {
+    host: 'rhel8',
+    port: 27017,
+    version: '7.0.16',
+    gitVersion: '18b949444cfdaa88e30b0e10243bc18268251c1f'
+  },
+  serverParameters: {
+    internalQueryFacetBufferSizeBytes: 104857600,
+    internalQueryFacetMaxOutputDocSizeBytes: 104857600,
+    internalLookupStageIntermediateDocumentMaxSizeBytes: 104857600,
+    internalDocumentSourceGroupMaxMemoryBytes: 104857600,
+    internalQueryMaxBlockingSortMemoryUsageBytes: 104857600,
+    internalQueryProhibitBlockingMergeOnMongoS: 0,
+    internalQueryMaxAddToSetBytes: 104857600,
+    internalDocumentSourceSetWindowFieldsMaxMemoryBytes: 104857600,
+    internalQueryFrameworkControl: 'trySbeRestricted'
+  },
+  command: {
+    aggregate: 'orders',
+    pipeline: [
+      {
+        '$match': {
+          '$and': [
+            { customer: 'Ivan' },
+            { date: { '$gte': '2023-10-08 09:00:00' } },
+            { date: { '$lt': '2023-10-08 15:00:00' } }
+          ]
+        }
+      },
+      {
+        '$group': { _id: { prod: '$prod' }, totalSum: { '$sum': '$price' } }
+      },
+      { '$sort': { _id: 1 } }
+    ],
+    cursor: {},
+    '$db': 'test'
+  },
+  ok: 1
+}
+```
+
+Выполняю запрос в ArangoDB:
+```
+127.0.0.1:8529@test> db._query('FOR doc IN orders FILTER doc.date >= "2023-10-08 09:00:00" AND doc.date < "2023-10-08 15:00:00" AND doc.customer == "Ivan" COLLECT prod = doc.prod AGGREGATE sum = sum(doc.price) SORT prod RETURN { prod, sum }').toArray()
+[
+  {
+    "prod" : "AutoGoods",
+    "sum" : 1374
+  },
+  {
+    "prod" : "Books",
+    "sum" : 2325
+  },
+  {
+    "prod" : "Cloth",
+    "sum" : 2644
+  },
+  {
+    "prod" : "Drinks",
+    "sum" : 983
+  },
+  {
+    "prod" : "Foods",
+    "sum" : 3464
+  },
+  {
+    "prod" : "Hobby",
+    "sum" : 2345
+  },
+  {
+    "prod" : "Hosehold",
+    "sum" : 492
+  },
+  {
+    "prod" : "Pharmacy",
+    "sum" : 3540
+  },
+  {
+    "prod" : "Shoes",
+    "sum" : 3182
+  }
+]
+
+127.0.0.1:8529@test> db._query('FOR doc IN orders FILTER doc.date >= "2023-10-08 09:00:00" AND doc.date < "2023-10-08 15:00:00" AND doc.customer == "Ivan" COLLECT prod = doc.prod AGGREGATE sum = sum(doc.price) SORT prod RETURN { prod, sum }').getExtra()
+{
+  "warnings" : [ ],
+  "stats" : {
+    "writesExecuted" : 0,
+    "writesIgnored" : 0,
+    "documentLookups" : 34,
+    "seeks" : 0,
+    "scannedFull" : 0,
+    "scannedIndex" : 100045,
+    "cursorsCreated" : 1,
+    "cursorsRearmed" : 0,
+    "cacheHits" : 0,
+    "cacheMisses" : 0,
+    "filtered" : 100010,
+    "httpRequests" : 0,
+    "executionTime" : 0.04769805199975963,
+    "peakMemoryUsage" : 65536,
+    "intermediateCommits" : 0
+  }
+}
+```
+
+__РЕЗУЛЬТАТ__: в MongoDB запрос выполнился за 1 мс, а в ArangoDB за 48 мс.
+
+Попробую построить в ArangoDB более подходящий индекс:
+```
+127.0.0.1:8529@test> db.orders.ensureIndex({ type: "persistent", fields: [ "customer", "date", "prod" ] });
+{
+  "cacheEnabled" : false,
+  "deduplicate" : true,
+  "estimates" : true,
+  "fields" : [
+    "customer",
+    "date",
+    "prod"
+  ],
+  "id" : "orders/11139292",
+  "isNewlyCreated" : true,
+  "name" : "idx_1823935444574797824",
+  "selectivityEstimate" : 0.9998779445868424,
+  "sparse" : false,
+  "type" : "persistent",
+  "unique" : false,
+  "code" : 201
+}
+```
+
+Выполняю запрос в ArangoDB ещё раз:
+```
+127.0.0.1:8529@test> db._query('FOR doc IN orders FILTER doc.date >= "2023-10-08 09:00:00" AND doc.date < "2023-10-08 15:00:00" AND doc.customer == "Ivan" COLLECT prod = doc.prod AGGREGATE sum = sum(doc.price) SORT prod RETURN { prod, sum }').getExtra()
+{
+  "warnings" : [ ],
+  "stats" : {
+    "writesExecuted" : 0,
+    "writesIgnored" : 0,
+    "documentLookups" : 34,
+    "seeks" : 0,
+    "scannedFull" : 0,
+    "scannedIndex" : 34,
+    "cursorsCreated" : 1,
+    "cursorsRearmed" : 0,
+    "cacheHits" : 0,
+    "cacheMisses" : 0,
+    "filtered" : 0,
+    "httpRequests" : 0,
+    "executionTime" : 0.0006361129999277182,
+    "peakMemoryUsage" : 65536,
+    "intermediateCommits" : 0
+  }
+}
+```
+
+__РЕЗУЛЬТАТ__: теперь запрос в обеих БД выполняется примерно за 1 мс.
+
+## Выводы
+
