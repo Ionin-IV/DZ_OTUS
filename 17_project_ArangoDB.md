@@ -795,22 +795,26 @@ neo4j@neo4j> CREATE INDEX customer_index FOR (c:customer) ON (c.customer);
 0 rows
 ready to start consuming query after 55 ms, results consumed after another 0 ms
 Added 1 indexes
-
+```
+```
 neo4j@neo4j> CREATE INDEX city_index FOR (c:city) ON (c.city);
 0 rows
 ready to start consuming query after 14 ms, results consumed after another 0 ms
 Added 1 indexes
-
+```
+```
 neo4j@neo4j> CREATE INDEX order_index FOR (o:order) ON (o.order_id, o.date, o.price);
 0 rows
 ready to start consuming query after 12 ms, results consumed after another 0 ms
 Added 1 indexes
-
+```
+```
 neo4j@neo4j> CREATE INDEX customer_to_order_index FOR ()-[r:CUSTOMER_TO_ORDER]-() ON (r.customer_to_order);
 0 rows
 ready to start consuming query after 15 ms, results consumed after another 0 ms
 Added 1 indexes
-
+```
+```
 neo4j@neo4j> CREATE INDEX order_to_city_index FOR ()-[r:ORDER_TO_CITY]-() ON (r.order_to_city);
 0 rows
 ready to start consuming query after 11 ms, results consumed after another 0 ms
@@ -845,7 +849,8 @@ neo4j@neo4j> CREATE INDEX prod_index FOR (p:prod) ON (p.prod);
 0 rows
 ready to start consuming query after 8 ms, results consumed after another 0 ms
 Added 1 indexes
-
+```
+```
 neo4j@neo4j> CREATE INDEX order_to_prod_index FOR ()-[r:ORDER_TO_PROD]-() ON (r.order_to_prod);
 0 rows
 ready to start consuming query after 10 ms, results consumed after another 0 ms
