@@ -991,7 +991,7 @@ __РЕЗУЛЬТАТ__: данные загружены за 15 секунд.
 
 Загружаю тот же json-файл:
 ```
-[root@rhel8 ~]# arangoimport --file "orders_all.json" --type json --collection "orders" --server.database "test"
+[root@test ~]# arangoimport --file "orders_all.json" --type json --collection "orders" --server.database "test"
 Please specify a password:
 2025-02-13T09:11:10.086675Z [5988-1] INFO [11111] {general} This executable uses the GNU C library (glibc), which is licensed under the GNU Lesser General Public License (LGPL), see https://www.gnu.org/copyleft/lesser.html and https://www.gnu.org/licenses/gpl.html
 Connected to ArangoDB 'http+tcp://127.0.0.1:8529, version: 3.12.3 [unknown, ], database: 'test', username: 'root'
